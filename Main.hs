@@ -2,8 +2,7 @@
 
 module Main where
 
-import Discord
-import Discord.Types
+import Src.Bot
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = run
