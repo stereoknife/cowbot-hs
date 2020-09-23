@@ -1,2 +1,4 @@
 dist-newstyle
-auth-token.secret
+token.secret
+.DS_Store
+.stack-work/
