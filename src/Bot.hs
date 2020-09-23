@@ -1,43 +1,69 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}  -- allows "strings" to be Data.Text
 
-module Src.Bot
-( run
-) where
+module Bot where
 
-import Data.Monoid ((<>), Any, getAny)
-import Control.Applicative
-import Control.Monad (void, forever)
-import Control.Concurrent (forkIO, killThread)
-import Control.Concurrent.Chan
+import Control.Monad (when, forM_)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
+import UnliftIO (liftIO)
+import UnliftIO.Concurrent
+
 import Discord
 import Discord.Types
+import qualified Discord.Requests as R
 
-import qualified Src.Constants as C
+import Parser
+import Commands
 
-run :: IO ()
-run = do
-  tok <- TIO.readFile "./auth-token.secret"
+-- | Replies "pong" to every message that starts with "ping"
+pingpongExample :: IO ()
+pingpongExample = do
+  tok <- TIO.readFile "./token.secret"
+  -- open ghci and run  [[ :info RunDiscordOpts ]] to see available fields
+  t <- runDiscord $ def { discordToken = tok
+                        , discordOnStart = liftIO $ putStrLn "Started"
+                        , discordOnEnd = liftIO $ putStrLn "Ended"
+                        , discordOnEvent = eventHandler
+                        , discordOnLog = \s -> TIO.putStrLn s >> TIO.putStrLn ""
+                        }
+  threadDelay (1 `div` 10 * 10^(6 :: Int))
+  TIO.putStrLn t
 
-  outChan <- newChan :: IO (Chan String)
+-- If the start handler throws an exception, discord-haskell will gracefully shutdown
+--     Use place to execute commands you know you want to complete
+startHandler :: DiscordHandler ()
+startHandler = do
+  Right partialGuilds <- restCall R.GetCurrentUserGuilds
 
-  threadId <- forkIO $ forever $ readChan outChan >>= putStrLn
+  forM_ partialGuilds $ \pg -> do
+    Right guild <- restCall $ R.GetGuild (partialGuildId pg)
+    Right chans <- restCall $ R.GetGuildChannels (guildId guild)
+    case filter isTextChannel chans of
+      (c:_) -> do _ <- restCall $ R.CreateMessage (channelId c) "Hello! I will reply to pings with pongs"
+                  pure ()
+      _ -> pure ()
 
-  void $ runDiscord $ def { discordToken = tok
-                          , discordOnStart = startHandler
-                          , discordOnEvent = eventHandler
-                          , discordOnEnd = killThread threadId
-                          }
+-- If an event handler throws an exception, discord-haskell will continue to run
+eventHandler :: Event -> DiscordHandler ()
+eventHandler event = case event of
+      MessageCreate m ->
+        let d = fmap fst $ parse command $ messageText m
+        in when (not $ fromBot m) $
+           case d of Just d' -> commandSwitch d' m
+                     Nothing -> pure ()
+      _ -> pure ()
 
-eventHandler :: DiscordHandle -> Event -> IO ()
-eventHandler handle event =
-  case event of MessageCreate m -> return ()
-                _ -> return ()
+isTextChannel :: Channel -> Bool
+isTextChannel (ChannelText {}) = True
+isTextChannel _ = False
 
-startHandler :: DiscordHandle -> IO ()
-startHandler _ = putStrLn "Ready!"
+fromBot :: Message -> Bool
+fromBot = userIsBot . messageAuthor
 
-isCommand :: Message -> Bool
-isCommand m = or $ T.isPrefixOf <$> C.prefixes <*> pure (messageText m)
+isPing :: Message -> Bool
+isPing = ("ping" `T.isPrefixOf`) . T.toLower . messageText
+
+isCommand :: Maybe CommandData -> Bool
+isCommand Nothing = False
+isCommand (Just d) = (prefix d) == "pref"
