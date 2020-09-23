@@ -11,7 +11,7 @@ import Control.Monad.Combinators (empty)
 import Data.Aeson
 import qualified Data.Text as T
 import qualified Data.Vector as V (head)
-import qualified Data.HashMap.Strict as H
+import qualified Data.HashMap.Strict as H (lookup, HashMap)
 
 import Discord
 import Discord.Types
@@ -19,7 +19,8 @@ import qualified Discord.Requests as R
 
 import Parser
 
-m !? k = H.lookup k m
+(!?) :: H.HashMap T.Text v -> T.Text -> Maybe v
+(!?) = flip H.lookup
 
 commandSwitch :: CommandData -> Message -> DiscordHandler ()
 commandSwitch d m = if

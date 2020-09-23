@@ -60,10 +60,3 @@ isTextChannel _ = False
 
 fromBot :: Message -> Bool
 fromBot = userIsBot . messageAuthor
-
-isPing :: Message -> Bool
-isPing = ("ping" `T.isPrefixOf`) . T.toLower . messageText
-
-isCommand :: Maybe CommandData -> Bool
-isCommand Nothing = False
-isCommand (Just d) = (prefix d) == "pref"
