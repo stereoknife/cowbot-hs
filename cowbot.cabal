@@ -1,18 +1,18 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
 -- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 
-name:           cowbot-stack
+name:           cowbot
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/cowbot-stack#readme>
-homepage:       https://github.com/githubuser/cowbot-stack#readme
-bug-reports:    https://github.com/githubuser/cowbot-stack/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
-license:        BSD3
+description:    Please see the README on GitHub at <https://github.com/stereoknife/cowbot-hs#readme>
+homepage:       https://github.com/stereoknife/cowbot-hs#readme
+bug-reports:    https://github.com/stereoknife/cowbot-hs/issues
+author:         nil
+maintainer:     stereoknife@yikes.dog
+copyright:      2020 nil
+license:        BSD-2-Clause
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/cowbot-stack
+  location: https://github.com/stereoknife/cowbot-hs
 
 library
   exposed-modules:
@@ -30,7 +30,7 @@ library
       Lib
       Parser
   other-modules:
-      Paths_cowbot_stack
+      Paths_cowbot
   hs-source-dirs:
       src
   build-depends:
@@ -46,17 +46,17 @@ library
     , vector
   default-language: Haskell2010
 
-executable cowbot-stack-exe
+executable cowbot-bin
   main-is: Main.hs
   other-modules:
-      Paths_cowbot_stack
+      Paths_cowbot
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base >=4.7 && <5
-    , cowbot-stack
+    , cowbot
     , discord-haskell
     , emoji
     , parser-combinators
@@ -67,18 +67,18 @@ executable cowbot-stack-exe
     , vector
   default-language: Haskell2010
 
-test-suite cowbot-stack-test
+test-suite cowbot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_cowbot_stack
+      Paths_cowbot
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base >=4.7 && <5
-    , cowbot-stack
+    , cowbot
     , discord-haskell
     , emoji
     , parser-combinators
