@@ -20,7 +20,7 @@ import Discord.Types
 import qualified Discord.Requests as R
 
 import Parser ( CommandData(name, args))
-import Data.Aeson.Types (parse)
+import qualified Data.Aeson.Types as JSON (parse)
 
 (!?) :: H.HashMap T.Text v -> T.Text -> Maybe v
 (!?) = flip H.lookup
@@ -50,18 +50,18 @@ bless ch = do
         {-Query-} $ "passage" =: ("random" :: T.Text)
                     <> "type" =: ("json" :: T.Text)
 
-    o <- case V.head $ (responseBody r :: Array) of
-      Object o -> return $ do
-        b <- o !? "bookname"
-        c <- o !? "chapter"
-        v <- o !? "verse"
-        t <- o !? "text"
-        case (b, c, v, t) of (String b, String c, String v, String t) -> Just (b, c, v, t)
-                             _ -> Nothing
-      _ -> return Nothing
+    pb <- return $ withObject "response" $
+      \res -> do
+        b <- res .: "bookname"
+        c <- res .: "chapter"
+        v <- res .: "verse"
+        t <- res .: "text"
+        return ((b, c, v, t) :: (T.Text, T.Text, T.Text, T.Text))
 
-    case o of Just (b, c, v, t) -> restCall $ R.CreateMessage ch $ "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
-              _ -> empty
+    rb <- return $ JSON.parse pb $ responseBody r
+
+    case rb of Success (b, c, v, t) -> restCall $ R.CreateMessage ch $ "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
+               _ -> empty
 
     pure ()
 
@@ -77,17 +77,17 @@ yt d ch = do
                     <> "key" =: ("" :: T.Text)
                     <> "q" =: (head $ args d)
 
-    id <- return $ withObject "data" 
-      (\dat -> do
+    pid <- return $ withObject "data" $
+      \dat -> do
         items   <- dat    .: "items"
         item    <- return $ V.head items
         id      <- item   .: "id"
-        videoId <- id     .: "videoId"
-        return (videoId :: T.Text))
+        vid     <- id     .: "videoId"
+        return (vid :: T.Text)
 
-    vid <- return $ parse id $ responseBody r
+    rid <- return $ JSON.parse pid $ responseBody r
 
-    case vid of Success v -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> v
+    case rid of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
                 _         -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
 
     pure ()
