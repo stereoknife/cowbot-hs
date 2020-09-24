@@ -8,6 +8,8 @@ import Network.HTTP.Req
 
 import Control.Monad.Combinators (empty)
 
+import UnliftIO
+
 import Data.Aeson
 import qualified Data.Text as T
 import qualified Data.Vector as V (head)
@@ -17,25 +19,26 @@ import Discord
 import Discord.Types
 import qualified Discord.Requests as R
 
-import Parser
+import Parser ( CommandData(name, args))
+import Data.Aeson.Types (parse)
 
 (!?) :: H.HashMap T.Text v -> T.Text -> Maybe v
 (!?) = flip H.lookup
 
 commandSwitch :: CommandData -> Message -> DiscordHandler ()
 commandSwitch d m = if
-    | name d == "ping" -> ping $ messageChannel m
-    | name d == "perish" -> stopDiscord
-    | name d == "bless" -> bless $ messageChannel m
+    | is "clap" -> clap d ch
+    | is "bless" -> bless ch
+    | any is ["yt", "youtube"] -> yt d ch
+    | is "perish" -> stopDiscord
     | otherwise -> pure ()
-    where n = name d
+    where ch = messageChannel m
+          is = (name d ==)
 
-ping :: ChannelId -> DiscordHandler()
-ping c = do
-    restCall $ R.CreateMessage c "pong"
+clap :: CommandData -> ChannelId -> DiscordHandler()
+clap d c = do
+    restCall $ R.CreateMessage c $ (T.intercalate "👏" $ args d) <> "👏"
     pure ()
-
-
 
 bless :: ChannelId -> DiscordHandler ()
 bless ch = do
@@ -59,5 +62,32 @@ bless ch = do
 
     case o of Just (b, c, v, t) -> restCall $ R.CreateMessage ch $ "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
               _ -> empty
+
+    pure ()
+
+yt :: CommandData -> ChannelId -> DiscordHandler ()
+yt d ch = do
+    r <- runReq defaultHttpConfig $ req
+       {-Method-} GET
+          {-URL-} (https "www.googleapis.com"/:"youtube"/:"v3"/:"search")
+         {-Body-} NoReqBody
+{-Response type-} jsonResponse
+        {-Query-} $ "part" =: ("snippet" :: T.Text)
+                    <> "maxResults" =: ("1" :: T.Text)
+                    <> "key" =: ("" :: T.Text)
+                    <> "q" =: (head $ args d)
+
+    id <- return $ withObject "data" 
+      (\dat -> do
+        items   <- dat    .: "items"
+        item    <- return $ V.head items
+        id      <- item   .: "id"
+        videoId <- id     .: "videoId"
+        return (videoId :: T.Text))
+
+    vid <- return $ parse id $ responseBody r
+
+    case vid of Success v -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> v
+                _         -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
 
     pure ()
