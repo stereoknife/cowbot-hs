@@ -29,6 +29,7 @@ library
       Commands
       Lib
       Parser
+      Secrets
   other-modules:
       Paths_cowbot
   hs-source-dirs:

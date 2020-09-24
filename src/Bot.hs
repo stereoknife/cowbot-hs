@@ -15,11 +15,12 @@ import qualified Discord.Requests as R
 
 import Parser
 import Commands
+import Secrets (token)
 
 -- | Replies "pong" to every message that starts with "ping"
 pingpongExample :: IO ()
 pingpongExample = do
-  tok <- TIO.readFile "./token.secret"
+  tok <- token
   -- open ghci and run  [[ :info RunDiscordOpts ]] to see available fields
   t <- runDiscord $ def { discordToken = tok
                         , discordOnStart = liftIO $ putStrLn "Started"

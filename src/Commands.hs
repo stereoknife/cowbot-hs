@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Commands where
+module Commands (commandSwitch) where
 
 import Network.HTTP.Req
 
@@ -14,13 +14,14 @@ import Data.Aeson
 import qualified Data.Text as T
 import qualified Data.Vector as V (head)
 import qualified Data.HashMap.Strict as H (lookup, HashMap)
+import qualified Data.Aeson.Types as JSON (parse)
 
 import Discord
 import Discord.Types
 import qualified Discord.Requests as R
 
 import Parser ( CommandData(name, args))
-import qualified Data.Aeson.Types as JSON (parse)
+import Secrets (yt_key)
 
 (!?) :: H.HashMap T.Text v -> T.Text -> Maybe v
 (!?) = flip H.lookup
@@ -67,6 +68,7 @@ bless ch = do
 
 yt :: CommandData -> ChannelId -> DiscordHandler ()
 yt d ch = do
+    key <- liftIO yt_key
     r <- runReq defaultHttpConfig $ req
        {-Method-} GET
           {-URL-} (https "www.googleapis.com"/:"youtube"/:"v3"/:"search")
@@ -74,8 +76,8 @@ yt d ch = do
 {-Response type-} jsonResponse
         {-Query-} $ "part" =: ("snippet" :: T.Text)
                     <> "maxResults" =: ("1" :: T.Text)
-                    <> "key" =: ("" :: T.Text)
-                    <> "q" =: (head $ args d)
+                    <> "key" =: key
+                    <> "q" =: head (args d)
 
     pid <- return $ withObject "data" $
       \dat -> do
