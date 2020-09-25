@@ -1,21 +1,22 @@
-{-# LANGUAGE OverloadedStrings #-}  -- allows "strings" to be Data.Text
+{-# LANGUAGE OverloadedStrings #-}
 
 module Bot where
 
-import Control.Monad (when, forM_)
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
+import           Control.Monad       (forM_, when)
+import qualified Data.Text           as T
+import qualified Data.Text.IO        as TIO
 
-import UnliftIO (liftIO)
-import UnliftIO.Concurrent
+import           UnliftIO            (liftIO)
+import           UnliftIO.Concurrent
 
-import Discord
-import Discord.Types
-import qualified Discord.Requests as R
+import           Discord
+import qualified Discord.Requests    as R
+import           Discord.Types
 
-import Parser
-import Commands
-import Secrets (token)
+import           Commands
+import           Parser
+import           Reactions
+import           Secrets             (token)
 
 -- | Replies "pong" to every message that starts with "ping"
 pingpongExample :: IO ()
@@ -53,11 +54,13 @@ eventHandler event = case event of
         in when (not $ fromBot m) $
            case d of Just d' -> commandSwitch d' m
                      Nothing -> pure ()
+
+      MessageReactionAdd r -> reactionSwitch r
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool
 isTextChannel (ChannelText {}) = True
-isTextChannel _ = False
+isTextChannel _                = False
 
 fromBot :: Message -> Bool
 fromBot = userIsBot . messageAuthor

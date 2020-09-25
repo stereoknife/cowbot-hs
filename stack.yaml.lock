@@ -32,6 +32,17 @@ packages:
       sha256: f34c0f906445ef356abb59978d787b9b587b44ad0ad2f2bc348fce0426a8a1e1
   original:
     hackage: req-3.6.0
+- completed:
+    name: google-translate
+    version: '0.5'
+    git: https://github.com/dmjio/google-translate.git
+    pantry-tree:
+      size: 640
+      sha256: e5cf8b01ac35dc9b2f3e7b75cdb48cb90df251d338cc0a1e14c8273292807b79
+    commit: 009babb1aa4a3b569bfda7393d3a8122ca879adf
+  original:
+    git: https://github.com/dmjio/google-translate.git
+    commit: 009babb1aa4a3b569bfda7393d3a8122ca879adf
 snapshots:
 - completed:
     size: 532380

@@ -27,9 +27,11 @@ library
   exposed-modules:
       Bot
       Commands
-      Lib
+      Net
       Parser
+      Reactions
       Secrets
+      Translate
   other-modules:
       Paths_cowbot
   hs-source-dirs:
@@ -37,9 +39,14 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , containers
     , discord-haskell
     , emoji
+    , google-translate
+    , http-client
+    , http-client-tls
     , parser-combinators
+    , random
     , req
     , text
     , unliftio
@@ -57,10 +64,15 @@ executable cowbot-bin
   build-depends:
       aeson
     , base >=4.7 && <5
+    , containers
     , cowbot
     , discord-haskell
     , emoji
+    , google-translate
+    , http-client
+    , http-client-tls
     , parser-combinators
+    , random
     , req
     , text
     , unliftio
@@ -79,10 +91,15 @@ test-suite cowbot-test
   build-depends:
       aeson
     , base >=4.7 && <5
+    , containers
     , cowbot
     , discord-haskell
     , emoji
+    , google-translate
+    , http-client
+    , http-client-tls
     , parser-combinators
+    , random
     , req
     , text
     , unliftio

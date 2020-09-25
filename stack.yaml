@@ -44,6 +44,8 @@ extra-deps:
 - discord-haskell-1.8.0
 - unliftio-0.2.13
 - req-3.6.0
+- git: https://github.com/dmjio/google-translate.git
+  commit: 009babb1aa4a3b569bfda7393d3a8122ca879adf
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

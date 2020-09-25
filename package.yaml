@@ -30,6 +30,11 @@ dependencies:
 - aeson
 - vector
 - unordered-containers
+- google-translate
+- http-client
+- http-client-tls
+- containers
+- random
 
 library:
   source-dirs: src
