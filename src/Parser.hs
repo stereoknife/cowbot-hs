@@ -1,25 +1,28 @@
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Parser ( Parser (..)
-              , CommandData (..)
+              , ParseResult (..)
+              , alias
+              , prefix
               , command
+              , args
               ) where
 
-import Data.Char
-import Control.Applicative ( Alternative (..))
-import Control.Monad (guard, when)
-import Control.Applicative.Combinators
-import Data.Text (Text)
-import qualified Data.Text as T
+import           Control.Applicative             (Alternative (..))
+import           Control.Applicative.Combinators
+import           Control.Monad                   (guard, when)
+import           Data.Char
+import           Data.Text                       (Text)
+import qualified Data.Text                       as T
 
-data CommandData = CommandData { prefix :: Text
-                               , name   :: Text
-                               , args   :: [Text]
+data ParseResult = ParseResult { getPrefix :: Text
+                               , getName   :: Text
+                               , getArgs   :: [Text]
                                } deriving (Show)
 
-newtype Parser a = Parser { parse :: Text -> Maybe (a, Text) }
+newtype Parser a = Parser { runParser :: Text -> Maybe (a, Text) }
 
 instance Functor Parser where
   fmap f (Parser p) = Parser $ \s -> do
@@ -29,30 +32,30 @@ instance Functor Parser where
 instance Applicative Parser where
   pure v = Parser $ \s -> Just (v, s)
   pf <*> p = Parser $ \s -> do
-    (f, s') <- parse pf s
-    parse (f <$> p) s'
+    (f, s') <- runParser pf s
+    runParser (f <$> p) s'
 
 instance Alternative Parser where
   empty = Parser $ const Nothing
   p1 <|> p2 = Parser $ \s ->
-    parse p1 s <|> parse p2 s
+    runParser p1 s <|> runParser p2 s
 
 instance Monad Parser where
   return = pure
   p >>= f = Parser $ \s ->
-    case parse p s of Just (p', s') -> parse (f p') s'
-                      Nothing -> Nothing
+    case runParser p s of Just (p', s') -> runParser (f p') s'
+                          Nothing       -> Nothing
 
 instance Semigroup a => Semigroup (Parser a) where
   p1 <> p2 = Parser $ \s ->
-    parse p1 s <> parse p2 s
+    runParser p1 s <> runParser p2 s
 
 instance Semigroup a => Monoid (Parser a) where
   mempty = empty
 
 provided :: Parser a -> (a -> Bool) -> Parser a
 p `provided` f = Parser $ \s -> do
-  (v, rest) <- parse p s
+  (v, rest) <- runParser p s
   guard $ f v
   return (v, rest)
 
@@ -69,7 +72,7 @@ anyChar = Parser $ \s -> if
 
 chars :: Text -> Parser Char
 chars "" = empty
-chars t = char (T.head t) <|> chars (T.tail t)
+chars t  = char (T.head t) <|> chars (T.tail t)
 
 string :: Text -> Parser Text
 string t = T.pack <$> str (T.unpack t)
@@ -98,9 +101,18 @@ trim p = ws *> p <* ws
 -- Token generators
 -- -----------------
 
-command :: Parser CommandData
+command :: Parser ParseResult
 command = do
   p <- trim $ string "🤠" <|> string "please cowbot would you "
   c <- trim word
   a <- many $ trim $ quotedString <|> word
-  return CommandData { prefix = p, name = c, args = a }
+  return $ ParseResult p c a
+
+prefix :: Parser Text
+prefix = trim $ string "🤠" <|> string "please cowbot would you "
+
+alias :: Parser Text
+alias = trim word
+
+args :: Parser [Text]
+args = many $ trim $ quotedString <|> word
