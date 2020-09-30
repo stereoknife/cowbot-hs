@@ -35,6 +35,9 @@ dependencies:
 - http-client-tls
 - containers
 - random
+- transformers
+- mtl
+- free
 
 library:
   source-dirs: src

@@ -42,13 +42,16 @@ library
     , containers
     , discord-haskell
     , emoji
+    , free
     , google-translate
     , http-client
     , http-client-tls
+    , mtl
     , parser-combinators
     , random
     , req
     , text
+    , transformers
     , unliftio
     , unordered-containers
     , vector
@@ -68,13 +71,16 @@ executable cowbot-bin
     , cowbot
     , discord-haskell
     , emoji
+    , free
     , google-translate
     , http-client
     , http-client-tls
+    , mtl
     , parser-combinators
     , random
     , req
     , text
+    , transformers
     , unliftio
     , unordered-containers
     , vector
@@ -95,13 +101,16 @@ test-suite cowbot-test
     , cowbot
     , discord-haskell
     , emoji
+    , free
     , google-translate
     , http-client
     , http-client-tls
+    , mtl
     , parser-combinators
     , random
     , req
     , text
+    , transformers
     , unliftio
     , unordered-containers
     , vector
