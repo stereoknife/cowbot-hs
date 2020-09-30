@@ -8,6 +8,7 @@ module Parser ( Parser (..)
               , prefix
               , command
               , args
+              , rest
               ) where
 
 import           Control.Applicative             (Alternative (..))
@@ -96,6 +97,9 @@ ws = fmap T.pack $ many $ char ' '
 
 trim :: Parser a -> Parser a
 trim p = ws *> p <* ws
+
+rest :: Parser Text
+rest = Parser $ \s -> Just (s, "")
 
 -- -----------------
 -- Token generators

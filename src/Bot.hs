@@ -15,10 +15,8 @@ import           Discord.Types
 
 import           Commands
 import           Parser
-import           Reactions
 import           Secrets             (token)
 
--- | Replies "pong" to every message that starts with "ping"
 pingpongExample :: IO ()
 pingpongExample = do
   tok <- token
@@ -50,7 +48,7 @@ startHandler = do
 eventHandler :: Event -> DiscordHandler ()
 eventHandler event = case event of
       MessageCreate m ->
-        let d = fmap fst $ parse command $ messageText m
+        let d = parse prefix $ messageText m
         in when (not $ fromBot m) $
            case d of Just d' -> commandSwitch d' m
                      Nothing -> pure ()
