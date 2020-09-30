@@ -9,10 +9,10 @@ import           GHC.Base           (Alternative ((<|>)))
 import           System.Environment
 
 token :: IO T.Text
-token = T.pack <$> getEnv "token" <|> TIO.readFile "./token.secret"
+token = T.pack <$> getEnv "DIS_TOKEN" <|> TIO.readFile "./token.secret"
 
 yt_key :: IO T.Text
-yt_key = T.pack <$> getEnv "g_key" <|> TIO.readFile "./google.secret"
+yt_key = T.pack <$> getEnv "GOO_KEY" <|> TIO.readFile "./google.secret"
 
 tr_key :: IO T.Text
-tr_key = T.pack <$> getEnv "g_key" <|> TIO.readFile "./google.secret"
+tr_key = T.pack <$> getEnv "GOO_KEY" <|> TIO.readFile "./google.secret"
