@@ -2,20 +2,29 @@
 
 module Bot where
 
-import           Control.Monad       (forM_, when)
-import qualified Data.Text           as T
-import qualified Data.Text.IO        as TIO
+import           Control.Monad        (forM_, when)
+import qualified Data.Text            as T
+import qualified Data.Text.IO         as TIO
 
-import           UnliftIO            (liftIO)
-import           UnliftIO.Concurrent
+import           UnliftIO             (liftIO)
+import           UnliftIO.Concurrent  (threadDelay)
 
-import           Discord
-import qualified Discord.Requests    as R
-import           Discord.Types
+import           Discord              (DiscordHandler, RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
+                                       def, restCall, runDiscord)
+import qualified Discord.Requests     as R
+import           Discord.Types        (Channel (ChannelText, channelId),
+                                       Event (MessageCreate), Guild (guildId),
+                                       Message (messageAuthor, messageText),
+                                       PartialGuild (partialGuildId),
+                                       User (userIsBot), messageChannel)
 
-import           Commands
-import           Parser
-import           Secrets             (token)
+import           Commands             (commandSwitch, runCommand)
+import           Control.Monad.Reader (runReader)
+import           Control.Monad.State  (runState)
+import           Parser               (Parser (..), prefix)
+import           Secrets              (token)
+
+import           Debug.Trace          (trace)
 
 pingpongExample :: IO ()
 pingpongExample = do
@@ -48,12 +57,14 @@ startHandler = do
 eventHandler :: Event -> DiscordHandler ()
 eventHandler event = case event of
       MessageCreate m ->
-        let d = parse prefix $ messageText m
-        in when (not $ fromBot m) $
-           case d of Just d' -> commandSwitch d' m
-                     Nothing -> pure ()
+        when (not $ fromBot m) $
+          let r = runParser prefix $ messageText m
+          in case r of Just (px, rest) -> do -- runCommand commandSwitch m rest
+                                          runCommand commandSwitch m rest
+                                          pure ()
+                       _               -> liftIO $ print "boot"
 
-      MessageReactionAdd r -> reactionSwitch r
+      -- MessageReactionAdd r -> reactionSwitch r
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool

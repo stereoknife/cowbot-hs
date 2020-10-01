@@ -1,37 +1,40 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Translate ( translate
-                 , langTypes
-                 , langNames
-                 ) where
+module Commands.Translate ( comTranslate
+                          ) where
 
-import           Data.Map                as M
+import           Commands.Base           (Command, parse', send)
+import           Control.Monad.Reader    (MonadIO (liftIO), asks)
+import           Data.Map                as M (Map, fromList, (!?))
 import qualified Data.Text               as T
-
-import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import           Network.HTTP.Req
+import           Discord                 (def, restCall)
+import qualified Discord.Requests        as R
+import           Discord.Types           (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                          CreateEmbedImage (CreateEmbedImageUrl),
+                                          EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                          Message (messageAuthor, messageChannel),
+                                          User (userAvatar, userId, userName))
+import           Network.HTTP.Client     (Manager)
+import           Network.HTTP.Client.TLS (newTlsManager)
+import           Parser                  (rest)
+import           Secrets                 (tr_key)
 import           Web.Google.Translate    (Body (Body), Key (Key), Lang (..),
-                                          Source, Target,
+                                          Source, Target (..),
                                           TranslatedText (TranslatedText),
                                           Translation (detectedSourceLanguage, translatedText),
-                                          TranslationResponse (translations))
-import qualified Web.Google.Translate    as Trans (translate)
-
-import           UnliftIO
-
-import           Secrets                 (tr_key)
+                                          TranslationResponse (translations),
+                                          translate)
 
 manager :: IO Manager
 manager = newTlsManager
 
-translate :: T.Text -> Maybe Source -> Target -> IO (Maybe (T.Text, Maybe T.Text))
-translate b s t = do
-    k <- Key <$> Secrets.tr_key
+doTranslate :: T.Text -> Maybe Source -> Target -> IO (Maybe (T.Text, Maybe T.Text))
+doTranslate b s t = do
+    k <- Key <$> tr_key
     m <- manager
     -------------------
 
-    transResult <- Trans.translate m k s t $ Body b
+    transResult <- translate m k s t $ Body b
 
     t <- return $ do
         res <- transResult
@@ -42,6 +45,48 @@ translate b s t = do
 
     case t of Right (text, mLang) -> return $ Just (text, mLang)
               Left _              -> return Nothing
+
+comTranslate :: Command
+comTranslate = do
+    return $ print "transin"
+    mt <- parse' rest
+    au <- asks messageAuthor
+    ch <- asks messageChannel
+
+    t <- liftIO $ doTranslate mt Nothing $ Target English
+
+    (tr, ln) <- return $ case t of Nothing -> ("", Nothing)
+                                   Just v  -> v
+
+    send $ restCall $ if (tr == mt) then R.CreateMessage ch $ "Nothing to translate.."
+                        else R.CreateMessageEmbed ch T.empty $
+                            let ll = case ln >>= (!?) langNames
+                                     of Just l' ->  l'
+                                        Nothing -> "who knever knows!"
+
+                                fr  = EmbedField { embedFieldName = ll
+                                                  , embedFieldValue = mt
+                                                  , embedFieldInline = Just False
+                                                  }
+
+                                to  = EmbedField { embedFieldName = "English"
+                                                  , embedFieldValue = tr
+                                                  , embedFieldInline = Just False
+                                                  }
+
+                                pic = do
+                                      av <- userAvatar au
+                                      pure $ CreateEmbedImageUrl $
+                                            "https://cdn.discordapp.com/avatars/"
+                                            <> (T.pack . show $ userId au)
+                                            <> "/" <> av <> ".png"
+
+                            in def { createEmbedAuthorName = userName au
+                                    , createEmbedFields     = [fr, to]
+                                    , createEmbedAuthorIcon = pic
+                                    }
+
+    return ()
 
 langNames :: M.Map T.Text T.Text
 langNames = M.fromList [ ("af", "Afrikaans")
