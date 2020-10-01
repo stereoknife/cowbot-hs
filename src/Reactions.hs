@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Reactions (reactionSwitch) where
+module Reactions (runReaction, reactionSwitch) where
 
 import           Network.HTTP.Req
 import           Web.Google.Translate      (Lang (..), Source (..), Target (..))
@@ -26,61 +26,60 @@ import           Discord.Internal.Rest
 import qualified Discord.Requests          as R
 import           Discord.Types
 
-import           Parser                    (CommandData (args, name))
+import           Control.Monad             (join)
+import           Control.Monad             (when)
+import           Control.Monad.Reader      (ReaderT, asks, lift, runReaderT)
 import           Secrets                   (yt_key)
-import           Translate                 (langNames, langTypes, translate)
+import           Translate                 (Trans (..), sendEmbed, translate)
 
-reactionSwitch :: ReactionInfo -> DiscordHandler ()
-reactionSwitch r = if
-    | is "symbols"          -> m >>= (trans Nothing $ Just English)
-    | is "world_map"        -> m >>= (trans Nothing Nothing) -- \128506\65039
-    | otherwise             -> pure ()
-    where is e = case unicodeByName e of Just (x:xs) -> x == (T.head $ emojiName $ reactionEmoji r)
-                                         Nothing -> False
-          m = do
-              Right m' <- restCall $ R.GetChannelMessage (reactionChannelId r, reactionMessageId r)
-              return m'
+type Reaction = ReaderT ReactionInfo DiscordHandler ()
 
-trans :: Maybe Lang -> Maybe Lang -> Message -> DiscordHandler ()
-trans sl tl' m = do
-    let mt = messageText m
-    let au = messageAuthor m
-    let ch = messageChannel m
+runReaction :: ReaderT r m a -> r -> m a
+runReaction = runReaderT
 
-    liftIO $ print "transing"
+reactionSwitch :: Reaction
+reactionSwitch = do
+    mid <- asks reactionMessageId
+    cid <- asks reactionChannelId
+    em  <- asks $ emojiName . reactionEmoji
+    amt <- lift $ do
+            em <- restCall $ R.GetReactions (cid, mid) em (2, R.BeforeReaction mid)
+            case em of Right m -> return $ m
+                       _       -> return []
 
-    i <- liftIO $ getStdRandom $ randomR (0, length langTypes)
-    let tl = case tl' of Just l  -> l
-                         Nothing -> (langTypes !! i)
+    let is e = T.head e == T.head em
+    if
+        | length amt > 1 -> pure ()
+        | is "🔣"   -> reactTranslate $ Just English
+        | is "🗺"   -> reactTranslate Nothing
+        | otherwise -> pure ()
+    return ()
 
-    t <- liftIO $ translate mt (Source <$> sl) (Target tl)
-    case t of Nothing -> empty
-              Just (t, l) -> restCall $
-                    if t == mt then R.CreateMessage ch $ "Nothing to translate.."
-                    else R.CreateMessageEmbed ch T.empty $
-                            let ln lc = case lc >>= (!?) langNames
-                                        of Just l' ->  l'
-                                           Nothing -> "who knever knows!"
+reactTranslate :: Maybe Lang -> Reaction
+reactTranslate to = do
+    mid <- asks reactionMessageId
+    cid <- asks reactionChannelId
+    em  <- asks $ emojiName . reactionEmoji
+    msg <- lift $ do
+            restCall $ R.CreateReaction (cid, mid) em
+            em <- restCall $ R.GetChannelMessage (cid, mid)
+            case em of Right m -> return $ Just m
+                       _       -> return empty
 
-                                fr  = EmbedField { embedFieldName = ln l
-                                                 , embedFieldValue = mt
-                                                 , embedFieldInline = Just False
-                                                 }
+    transl <- case messageText <$> msg
+        of Just mt -> liftIO $
+                translate mt Nothing $ to
+           _ -> empty
 
-                                to  = EmbedField { embedFieldName = ln $ Just $ T.pack $ show tl
-                                                 , embedFieldValue = t
-                                                 , embedFieldInline = Just False
-                                                 }
-
-                                pic = do av <- userAvatar au
-                                         pure $ CreateEmbedImageUrl $
-                                                "https://cdn.discordapp.com/avatars/"
-                                                <> (T.pack . show $ userId au)
-                                                <> "/" <> av <> ".png"
-
-                            in def { createEmbedAuthorName = userName au
-                                   , createEmbedFields     = [fr, to]
-                                   , createEmbedAuthorIcon = pic
-                                   }
-
-    pure ()
+    case (transl, messageAuthor <$> msg)
+        of (Trans { fromText = Just ft
+                  , fromLang = Just fl
+                  , toText = Just tt
+                  , toLang = Just tl
+                  , success = True
+                  }
+                , Just ma) -> do
+                    lift $ restCall $ if ft == tt then R.CreateMessage cid "Nothing to translate.."
+                                                  else R.CreateMessageEmbed cid T.empty $ sendEmbed ma (fl, ft) (tl, tt)
+                    return ()
+           _ -> return ()

@@ -30,6 +30,6 @@ commandSwitch = do
     | is "bless" -> bless
     | is "yt" -> yt
     | is "t" -> comTranslate
-    | otherwise -> lift $ lift $ (restCall $ R.CreateMessage ch "bad command") >> pure ()
+    | otherwise -> return () -- lift $ lift $ (restCall $ R.CreateMessage ch "bad command") >> pure ()
   pure ()
 

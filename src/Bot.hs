@@ -13,7 +13,8 @@ import           Discord              (DiscordHandler, RunDiscordOpts (discordOn
                                        def, restCall, runDiscord)
 import qualified Discord.Requests     as R
 import           Discord.Types        (Channel (ChannelText, channelId),
-                                       Event (MessageCreate), Guild (guildId),
+                                       Event (MessageCreate, MessageReactionAdd),
+                                       Guild (guildId),
                                        Message (messageAuthor, messageText),
                                        PartialGuild (partialGuildId),
                                        User (userIsBot), messageChannel)
@@ -22,6 +23,7 @@ import           Commands             (commandSwitch, runCommand)
 import           Control.Monad.Reader (runReader)
 import           Control.Monad.State  (runState)
 import           Parser               (Parser (..), prefix)
+import           Reactions            (reactionSwitch, runReaction)
 import           Secrets              (token)
 
 import           Debug.Trace          (trace)
@@ -62,9 +64,9 @@ eventHandler event = case event of
           in case r of Just (px, rest) -> do -- runCommand commandSwitch m rest
                                           runCommand commandSwitch m rest
                                           pure ()
-                       _               -> liftIO $ print "boot"
+                       _               -> pure ()
 
-      -- MessageReactionAdd r -> reactionSwitch r
+      MessageReactionAdd r -> runReaction reactionSwitch r
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool
