@@ -4,10 +4,12 @@ module Commands.Bless (bless) where
 
 import           Commands.Base             (Command, send)
 import           Control.Monad.Combinators (empty)
-import           Control.Monad.Reader      (asks)
-import           Data.Aeson                (Result (Success), withObject, (.:))
+import           Control.Monad.Reader      (asks, liftIO)
+import           Data.Aeson                (Object, Result (Success), withArray,
+                                            withObject, (.:))
 import qualified Data.Aeson.Types          as JSON
 import qualified Data.Text                 as T
+import qualified Data.Vector               as V
 import           Discord                   (restCall)
 import qualified Discord.Requests          as R
 import           Discord.Types             (Message (messageChannel))
@@ -16,12 +18,10 @@ import           Network.HTTP.Req          (GET (GET), NoReqBody (NoReqBody),
                                             jsonResponse, req, responseBody,
                                             runReq, (/:), (=:))
 
-import           Debug.Trace               (trace)
-
 bless :: Command
 bless = do
-    return $ trace "blessin"
-    r <- runReq defaultHttpConfig $ req
+    ch <- asks messageChannel
+    r <- liftIO $ runReq defaultHttpConfig $ req
        {-Method-} GET
           {-URL-} (https "labs.bible.org" /: "api")
          {-Body-} NoReqBody
@@ -29,19 +29,21 @@ bless = do
         {-Query-} $ "passage" =: ("random" :: T.Text)
                   <> "type" =: ("json" :: T.Text)
 
-    pb <- return $ withObject "response" $
-      \res -> do
-        b <- res .: "bookname"
-        c <- res .: "chapter"
-        v <- res .: "verse"
-        t <- res .: "text"
-        return ((b, c, v, t) :: (T.Text, T.Text, T.Text, T.Text))
+    pb <- return $ withArray "response" $
+      \arr -> do
+        case V.head arr of
+          JSON.Object res -> do
+            b <- res .: "bookname"
+            c <- res .: "chapter"
+            v <- res .: "verse"
+            t <- res .: "text"
+            return ((b, c, v, t) :: (T.Text, T.Text, T.Text, T.Text))
+          _ -> return mempty
 
     rb <- return $ JSON.parse pb $ responseBody r
-    ch <- asks messageChannel
 
-    case rb of _ -> empty
-               Success (b, c, v, t) -> send $ restCall $ R.CreateMessage ch $
+    case rb of Success (b, c, v, t) -> send $ restCall $ R.CreateMessage ch $
                                         "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
+               _ -> empty
 
     pure ()
