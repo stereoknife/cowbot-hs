@@ -27,6 +27,11 @@ library
   exposed-modules:
       Bot
       Commands
+      Commands.Base
+      Commands.Bless
+      Commands.Clap
+      Commands.Translate
+      Commands.Youtube
       Net
       Parser
       Reactions
