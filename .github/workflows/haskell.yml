@@ -34,7 +34,7 @@ jobs:
     - name: Install dependencies
       run: stack setup
     - name: Build
-      run: stack build .
+      run: stack build cowbot
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.0
