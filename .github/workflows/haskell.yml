@@ -19,6 +19,12 @@ jobs:
         enable-stack: true
         stack-version: 'latest'
 
+    - name: Install ghc
+      run: stack setup
+      
+    - name: Install dependencies
+      run: stack build cowbot --only-dependencies
+      
     - name: Cache
       uses: actions/cache@v1
       env:
@@ -30,9 +36,7 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-
-    - name: Install dependencies
-      run: stack setup
+          
     - name: Build
       run: stack build cowbot
 
