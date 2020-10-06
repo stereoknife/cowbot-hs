@@ -13,6 +13,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      
+    - name: Cache stack
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-stack
+      with:
+        path: ~/.stack-work
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/stack.yaml') }}-${{ hashFiles('**/package.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+      
     - uses: actions/setup-haskell@v1.1
       with:
         ghc-version: '8.8.4'
@@ -24,18 +37,6 @@ jobs:
       
     - name: Install dependencies
       run: stack build cowbot --only-dependencies
-      
-    - name: Cache
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-stack
-      with:
-        path: ~/.stack-work
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/stack.yaml') }}-${{ hashFiles('**/package.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
           
     - name: Build
       run: stack build cowbot
