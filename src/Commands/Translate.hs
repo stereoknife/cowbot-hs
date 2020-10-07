@@ -30,8 +30,8 @@ comTranslate = do
                   , toLang = Just tl
                   , success = True
                   } -> do
-                    liftIO $ return $ restCall $ if ft == tt then R.CreateMessage ch "Nothing to translate.."
-                                                             else R.CreateMessageEmbed ch T.empty $ sendEmbed au (fl, ft) (tl, tt)
+                    return $ restCall $ if ft == tt then R.CreateMessage ch "Nothing to translate.."
+                                                    else R.CreateMessageEmbed ch T.empty $ sendEmbed au (fl, ft) (tl, tt)
                     return ()
            _ -> return ()
 

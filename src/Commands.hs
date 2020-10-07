@@ -11,6 +11,7 @@ import           Commands.Youtube   (yt)
 import           Parser             (alias)
 
 import           Debug.Trace        (trace)
+import           Discord            (stopDiscord)
 
 
 commandSwitch :: Command ()
@@ -24,6 +25,7 @@ commandSwitch = do
     | is "bless" -> bless
     | is "yt" -> yt
     | is "t" -> comTranslate
+    | is "perish" -> (return $ stopDiscord) >> pure ()
     | otherwise -> return ()
   pure ()
 

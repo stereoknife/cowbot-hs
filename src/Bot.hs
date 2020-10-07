@@ -2,31 +2,28 @@
 
 module Bot where
 
-import           Control.Monad        (forM_, when)
-import qualified Data.Text            as T
-import qualified Data.Text.IO         as TIO
+import           Control.Monad       (forM_, when)
+import qualified Data.Text.IO        as TIO
 
-import           UnliftIO             (liftIO)
-import           UnliftIO.Concurrent  (threadDelay)
+import           UnliftIO            (liftIO)
+import           UnliftIO.Concurrent (threadDelay)
 
-import           Discord              (DiscordHandler, RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
-                                       def, restCall, runDiscord)
-import qualified Discord.Requests     as R
-import           Discord.Types        (Channel (ChannelText, channelId),
-                                       Event (MessageCreate, MessageReactionAdd),
-                                       Guild (guildId),
-                                       Message (messageAuthor, messageText),
-                                       PartialGuild (partialGuildId),
-                                       User (userIsBot), messageChannel)
+import           Discord             (DiscordHandler, RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
+                                      def, restCall, runDiscord)
+import qualified Discord.Requests    as R
 
-import           Commands             (commandSwitch, runCommand)
-import           Control.Monad.Reader (runReader)
-import           Control.Monad.State  (runState)
-import           Parser               (Parser (..), prefix)
-import           Reactions            (reactionSwitch, runReaction)
-import           Secrets              (token)
 
-import           Debug.Trace          (trace)
+import           Commands            (commandSwitch, runCommand)
+import           Discord.Types       (Channel (ChannelText, channelId),
+                                      Event (MessageCreate, MessageReactionAdd),
+                                      Guild (guildId),
+                                      Message (messageAuthor, messageText),
+                                      PartialGuild (partialGuildId),
+                                      User (userIsBot))
+import           Parser              (Parser (..), prefix)
+import           Reactions           (reactionSwitch, runReaction)
+import           Secrets             (token)
+
 
 pingpongExample :: IO ()
 pingpongExample = do
@@ -61,7 +58,7 @@ eventHandler event = case event of
       MessageCreate m ->
         when (not $ fromBot m) $
           let r = runParser prefix $ messageText m
-          in case r of Just (px, rest) -> do
+          in case r of Just (_, rest) -> do
                                           runCommand commandSwitch m rest
                                           pure ()
                        _               -> pure ()

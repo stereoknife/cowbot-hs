@@ -50,7 +50,7 @@ yt = do
     videoId <- case wrappedId of Just a -> liftIO a
                                  _      -> empty
 
-    liftIO $ return $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
-                                      _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
+    return $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
+                             _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
 
     pure ()

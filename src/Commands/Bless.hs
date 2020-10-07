@@ -41,7 +41,7 @@ bless = do
 
     rb <- return $ JSON.parse pb $ responseBody r
 
-    case rb of Success (b, c, v, t) -> liftIO $ return $ restCall $ R.CreateMessage ch $
+    case rb of Success (b, c, v, t) -> return $ restCall $ R.CreateMessage ch $
                                         "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
                _ -> empty
 
