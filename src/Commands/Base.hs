@@ -1,21 +1,26 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
-module Commands.Base (runCommand, Command, parse, parse', send) where
+module Commands.Base (runCommand, Command, parse, parse') where
 
-import           Control.Monad.Reader (ReaderT, asks, runReaderT)
-import           Control.Monad.State  (MonadState (state), StateT, evalStateT)
-import           Control.Monad.Trans  (MonadTrans (lift))
-import           Data.Text            (Text)
-import           Discord              (DiscordHandle, DiscordHandler)
-import           Discord.Types        (Message)
-import           Parser               (Parser (runParser))
+import           Control.Applicative    (Alternative)
+import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.Reader   (MonadReader, ReaderT, runReaderT)
+import           Control.Monad.State    (MonadState (state), StateT, evalStateT)
+import           Data.Text              (Text)
+import           Discord                (DiscordHandler)
+import           Discord.Types          (Message)
+import           Parser                 (Parser (runParser))
 
-type CommandData b a = ReaderT Message (StateT Text DiscordHandler) a
-type Command = CommandData () ()
+--type CommandData b a = ReaderT Message (StateT Text DiscordHandler) a
+-- type Command = CommandData () ()
 
-send :: ReaderT DiscordHandle IO a -> ReaderT Message (StateT Text (ReaderT DiscordHandle IO)) a
-send = lift . lift
+newtype Command a = Command { runCommandM :: ReaderT Message (StateT Text DiscordHandler) a }
+  deriving (Functor, Applicative, Alternative, Monad, MonadFail, MonadIO, MonadReader Message, MonadState Text)
+
+runCommand :: Command a -> Message -> Text -> DiscordHandler a
+runCommand c m t = evalStateT (runReaderT (runCommandM c) m) t
 
 parse :: (MonadState Text m, Semigroup a) => Parser a -> m (Maybe a)
 parse f = state $ \t -> do
@@ -29,11 +34,6 @@ parse' f = do
   p <- parse f
   return $ case p of Just v -> v
                      _      -> mempty
-
-
-runCommand :: Monad m => ReaderT r (StateT s m) a -> r -> s -> m a
-runCommand c m t = evalStateT s t
-  where s = runReaderT c m
 
 
 permission :: Message -> Bool

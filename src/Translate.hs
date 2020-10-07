@@ -2,16 +2,13 @@
 
 module Translate (translate, sendEmbed, Trans(..)) where
 
-import           Control.Monad.Reader    (MonadTrans (lift))
 import qualified Data.Map                as M
 import qualified Data.Text               as T
-import           Discord                 (DiscordHandler, RestCallErrorCode,
-                                          def, restCall)
-import qualified Discord.Requests        as R
-import           Discord.Types           (ChannelId, CreateEmbed,
+import           Discord                 (def)
+import           Discord.Types           (CreateEmbed,
                                           CreateEmbedImage (CreateEmbedImageUrl),
-                                          EmbedField (EmbedField), Message,
-                                          User, createEmbedAuthorIcon,
+                                          EmbedField (EmbedField), User,
+                                          createEmbedAuthorIcon,
                                           createEmbedAuthorName,
                                           createEmbedFields, embedFieldInline,
                                           embedFieldName, embedFieldValue,
@@ -20,7 +17,6 @@ import           Network.HTTP.Client     (Manager)
 import           Network.HTTP.Client.TLS (newTlsManager)
 import           Secrets
 import           System.Random           (getStdRandom, randomR)
-import           UnliftIO                (MonadIO (liftIO))
 import           Web.Google.Translate    (Body (Body), Key (Key), Lang (..),
                                           Source (Source), Target (Target),
                                           TranslatedText (TranslatedText),

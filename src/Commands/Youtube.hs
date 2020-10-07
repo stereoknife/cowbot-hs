@@ -2,7 +2,7 @@
 
 module Commands.Youtube where
 
-import           Commands.Base             (Command, parse, send)
+import           Commands.Base             (Command, parse)
 import           Control.Monad.Combinators (empty)
 import           Control.Monad.Reader      (MonadIO (liftIO), asks)
 import           Data.Aeson                (Result (Success), withObject, (.:))
@@ -18,7 +18,7 @@ import           Network.HTTP.Req          (GET (GET), NoReqBody (NoReqBody),
 import           Parser                    (rest)
 import           Secrets                   (yt_key)
 
-yt :: Command
+yt :: Command ()
 yt = do
     key <- liftIO yt_key
     ch <- asks messageChannel
@@ -50,7 +50,7 @@ yt = do
     videoId <- case wrappedId of Just a -> liftIO a
                                  _      -> empty
 
-    send $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
-                           _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
+    liftIO $ return $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
+                                      _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
 
     pure ()

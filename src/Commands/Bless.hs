@@ -2,11 +2,10 @@
 
 module Commands.Bless (bless) where
 
-import           Commands.Base             (Command, send)
+import           Commands.Base             (Command)
 import           Control.Monad.Combinators (empty)
 import           Control.Monad.Reader      (asks, liftIO)
-import           Data.Aeson                (Object, Result (Success), withArray,
-                                            withObject, (.:))
+import           Data.Aeson                (Result (Success), withArray, (.:))
 import qualified Data.Aeson.Types          as JSON
 import qualified Data.Text                 as T
 import qualified Data.Vector               as V
@@ -18,7 +17,7 @@ import           Network.HTTP.Req          (GET (GET), NoReqBody (NoReqBody),
                                             jsonResponse, req, responseBody,
                                             runReq, (/:), (=:))
 
-bless :: Command
+bless :: Command ()
 bless = do
     ch <- asks messageChannel
     r <- liftIO $ runReq defaultHttpConfig $ req
@@ -42,7 +41,7 @@ bless = do
 
     rb <- return $ JSON.parse pb $ responseBody r
 
-    case rb of Success (b, c, v, t) -> send $ restCall $ R.CreateMessage ch $
+    case rb of Success (b, c, v, t) -> liftIO $ return $ restCall $ R.CreateMessage ch $
                                         "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
                _ -> empty
 

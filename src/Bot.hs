@@ -61,7 +61,7 @@ eventHandler event = case event of
       MessageCreate m ->
         when (not $ fromBot m) $
           let r = runParser prefix $ messageText m
-          in case r of Just (px, rest) -> do -- runCommand commandSwitch m rest
+          in case r of Just (px, rest) -> do
                                           runCommand commandSwitch m rest
                                           pure ()
                        _               -> pure ()
