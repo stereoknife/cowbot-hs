@@ -4,7 +4,7 @@ module Commands.Youtube where
 
 import           Commands.Base             (Command, parse)
 import           Control.Monad.Combinators (empty)
-import           Control.Monad.Reader      (MonadIO (liftIO), asks)
+import           Control.Monad.Reader      (MonadIO (liftIO), asks, lift)
 import           Data.Aeson                (Result (Success), withObject, (.:))
 import qualified Data.Aeson.Types          as JSON
 import qualified Data.Text                 as T
@@ -50,7 +50,7 @@ yt = do
     videoId <- case wrappedId of Just a -> liftIO a
                                  _      -> empty
 
-    return $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
-                             _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
+    lift $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
+                           _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
 
     pure ()

@@ -2,18 +2,12 @@
 
 module Bot where
 
+import           Commands            (commandSwitch, runCommand)
 import           Control.Monad       (forM_, when)
 import qualified Data.Text.IO        as TIO
-
-import           UnliftIO            (liftIO)
-import           UnliftIO.Concurrent (threadDelay)
-
 import           Discord             (DiscordHandler, RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
                                       def, restCall, runDiscord)
 import qualified Discord.Requests    as R
-
-
-import           Commands            (commandSwitch, runCommand)
 import           Discord.Types       (Channel (ChannelText, channelId),
                                       Event (MessageCreate, MessageReactionAdd),
                                       Guild (guildId),
@@ -23,6 +17,8 @@ import           Discord.Types       (Channel (ChannelText, channelId),
 import           Parser              (Parser (..), prefix)
 import           Reactions           (reactionSwitch, runReaction)
 import           Secrets             (token)
+import           UnliftIO            (liftIO)
+import           UnliftIO.Concurrent (threadDelay)
 
 
 pingpongExample :: IO ()

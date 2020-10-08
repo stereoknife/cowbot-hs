@@ -12,9 +12,8 @@ module Parser ( Parser (..)
               ) where
 
 import           Control.Applicative             (Alternative (..))
-import           Control.Applicative.Combinators
-import           Control.Monad                   (guard, when)
-import           Data.Char
+import           Control.Applicative.Combinators (between)
+import           Control.Monad                   (guard)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as T
 

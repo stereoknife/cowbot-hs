@@ -6,7 +6,7 @@ module Secrets ( token
 import qualified Data.Text          as T
 import qualified Data.Text.IO       as TIO
 import           GHC.Base           (Alternative ((<|>)))
-import           System.Environment
+import           System.Environment (getEnv)
 
 token :: IO T.Text
 token = T.pack <$> getEnv "DIS_TOKEN" <|> TIO.readFile "./token.secret"

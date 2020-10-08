@@ -4,7 +4,7 @@ module Commands.Translate ( comTranslate
                           ) where
 
 import           Commands.Base        (Command, parse')
-import           Control.Monad.Reader (MonadIO (liftIO), asks)
+import           Control.Monad.Reader (MonadIO (liftIO), asks, lift)
 import qualified Data.Text            as T
 import           Discord              (restCall)
 import qualified Discord.Requests     as R
@@ -30,8 +30,8 @@ comTranslate = do
                   , toLang = Just tl
                   , success = True
                   } -> do
-                    return $ restCall $ if ft == tt then R.CreateMessage ch "Nothing to translate.."
-                                                    else R.CreateMessageEmbed ch T.empty $ sendEmbed au (fl, ft) (tl, tt)
+                    lift $ restCall $ if ft == tt then R.CreateMessage ch "Nothing to translate.."
+                                                  else R.CreateMessageEmbed ch T.empty $ sendEmbed au (fl, ft) (tl, tt)
                     return ()
            _ -> return ()
 

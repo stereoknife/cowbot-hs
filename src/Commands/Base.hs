@@ -4,20 +4,27 @@
 
 module Commands.Base (runCommand, Command, parse, parse') where
 
-import           Control.Applicative    (Alternative)
-import           Control.Monad.IO.Class (MonadIO)
-import           Control.Monad.Reader   (MonadReader, ReaderT, runReaderT)
-import           Control.Monad.State    (MonadState (state), StateT, evalStateT)
-import           Data.Text              (Text)
-import           Discord                (DiscordHandler)
-import           Discord.Types          (Message)
-import           Parser                 (Parser (runParser))
+import           Control.Applicative  (Alternative)
+import           Control.Monad.Reader (MonadIO, MonadReader, ReaderT,
+                                       runReaderT)
+import           Control.Monad.State  (MonadState (state), StateT, evalStateT)
+
+import           Control.Monad.Trans  (MonadTrans (..))
+import           Data.Text            (Text)
+import           Discord              (DiscordHandler)
+import           Discord.Types        (Message)
+import           Parser               (Parser (runParser))
 
 --type CommandData b a = ReaderT Message (StateT Text DiscordHandler) a
 -- type Command = CommandData () ()
 
-newtype Command a = Command { runCommandM :: ReaderT Message (StateT Text DiscordHandler) a }
+newtype CommandT m a = CommandT { runCommandM :: ReaderT Message (StateT Text m) a }
   deriving (Functor, Applicative, Alternative, Monad, MonadFail, MonadIO, MonadReader Message, MonadState Text)
+
+instance MonadTrans CommandT where
+  lift = CommandT . lift . lift
+
+type Command a = CommandT DiscordHandler a
 
 runCommand :: Command a -> Message -> Text -> DiscordHandler a
 runCommand c m t = evalStateT (runReaderT (runCommandM c) m) t

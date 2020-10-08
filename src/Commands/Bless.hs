@@ -4,7 +4,7 @@ module Commands.Bless (bless) where
 
 import           Commands.Base             (Command)
 import           Control.Monad.Combinators (empty)
-import           Control.Monad.Reader      (asks, liftIO)
+import           Control.Monad.Reader      (asks, lift, liftIO)
 import           Data.Aeson                (Result (Success), withArray, (.:))
 import qualified Data.Aeson.Types          as JSON
 import qualified Data.Text                 as T
@@ -41,7 +41,7 @@ bless = do
 
     rb <- return $ JSON.parse pb $ responseBody r
 
-    case rb of Success (b, c, v, t) -> return $ restCall $ R.CreateMessage ch $
+    case rb of Success (b, c, v, t) -> lift $ restCall $ R.CreateMessage ch $
                                         "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
                _ -> empty
 

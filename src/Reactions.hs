@@ -4,33 +4,17 @@
 
 module Reactions (runReaction, reactionSwitch) where
 
-import           Network.HTTP.Req
-import           Web.Google.Translate      (Lang (..), Source (..), Target (..))
-
 import           Control.Monad.Combinators (empty)
-
-import           UnliftIO
-
-import           Data.Aeson
-import qualified Data.Aeson.Types          as JSON (parse)
-import           Data.Emoji                (unicodeByName)
-import qualified Data.HashMap.Strict       as H (HashMap, lookup)
-import           Data.Map                  (elemAt, (!?))
+import           Control.Monad.Reader      (ReaderT, asks, lift, liftIO,
+                                            runReaderT)
 import qualified Data.Text                 as T
-import qualified Data.Vector               as V (head)
-
-import           System.Random
-
-import           Discord
-import           Discord.Internal.Rest
+import           Discord                   (DiscordHandler, restCall)
+import           Discord.Internal.Rest     (Emoji (emojiName),
+                                            Message (messageAuthor, messageText),
+                                            ReactionInfo (reactionChannelId, reactionEmoji, reactionMessageId))
 import qualified Discord.Requests          as R
-import           Discord.Types
-
-import           Control.Monad             (join)
-import           Control.Monad             (when)
-import           Control.Monad.Reader      (ReaderT, asks, lift, runReaderT)
-import           Secrets                   (yt_key)
 import           Translate                 (Trans (..), sendEmbed, translate)
+import           Web.Google.Translate      (Lang (..))
 
 type Reaction = ReaderT ReactionInfo DiscordHandler ()
 

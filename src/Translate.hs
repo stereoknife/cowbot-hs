@@ -15,7 +15,7 @@ import           Discord.Types           (CreateEmbed,
                                           userAvatar, userId, userName)
 import           Network.HTTP.Client     (Manager)
 import           Network.HTTP.Client.TLS (newTlsManager)
-import           Secrets
+import           Secrets                 (tr_key)
 import           System.Random           (getStdRandom, randomR)
 import           Web.Google.Translate    (Body (Body), Key (Key), Lang (..),
                                           Source (Source), Target (Target),
