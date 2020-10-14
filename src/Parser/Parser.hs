@@ -1,19 +1,25 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE MultiWayIf                 #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
-module Parser ( Parser (..)
-              , ParseResult (..)
-              , alias
-              , prefix
-              , command
-              , args
-              , rest
-              ) where
+module Parser.Parser ( Parser (..)
+                     , ParseResult (..)
+                     , alias
+                     , prefix
+                     , command
+                     , args
+                     , rest
+                     , flag
+                     , trim
+                     , string
+                     ) where
 
 import           Control.Applicative             (Alternative (..))
 import           Control.Applicative.Combinators (between)
 import           Control.Monad                   (guard)
+import           Control.Monad.State
 import           Data.Text                       (Text)
 import qualified Data.Text                       as T
 
@@ -68,7 +74,7 @@ char c = anyChar `provided` (==) c
 anyChar :: Parser Char
 anyChar = Parser $ \s -> if
   | s == T.empty -> Nothing
-  | otherwise -> Just (T.head s, T.tail s)
+  | otherwise    -> Just (T.head s, T.tail s)
 
 chars :: Text -> Parser Char
 chars "" = empty
@@ -77,7 +83,7 @@ chars t  = char (T.head t) <|> chars (T.tail t)
 string :: Text -> Parser Text
 string t = T.pack <$> str (T.unpack t)
   where str = \case (x:xs) -> mappend . pure <$> char x <*> str xs
-                    [] -> pure []
+                    []     -> pure []
 
 quotedString :: Parser Text
 quotedString = between (char '"') (char '"') (fmap T.pack $ some $ anyChar `provided` (/=) '"')
@@ -108,7 +114,7 @@ command :: Parser ParseResult
 command = do
   p <- trim $ string "🤠" <|> string "please cowbot would you "
   c <- trim word
-  a <- many $ trim $ quotedString <|> word
+  a <- many . trim $ quotedString <|> word
   return $ ParseResult p c a
 
 prefix :: Parser Text
@@ -118,4 +124,7 @@ alias :: Parser Text
 alias = trim word
 
 args :: Parser [Text]
-args = many $ trim $ quotedString <|> word
+args = many . trim $ quotedString <|> word
+
+flag :: Text -> Parser Text
+flag = trim . string . ("--" <>)
