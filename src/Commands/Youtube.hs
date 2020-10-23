@@ -1,33 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Commands.Youtube where
 
-import           Commands.Base             (Command, parse)
-import           Control.Monad.Combinators (empty)
-import           Control.Monad.Reader      (MonadIO (liftIO), asks, lift)
-import           Data.Aeson                (Result (Success), withObject, (.:))
-import qualified Data.Aeson.Types          as JSON
-import qualified Data.Text                 as T
-import           Discord                   (restCall)
-import qualified Discord.Requests          as R
-import           Discord.Types             (Message (messageChannel))
-import           Network.HTTP.Req          (GET (GET), NoReqBody (NoReqBody),
-                                            defaultHttpConfig, https,
-                                            jsonResponse, req, responseBody,
-                                            runReq, (/:), (=:))
-import           Parser                    (rest)
-import           Secrets                   (yt_key)
+import           Control.Applicative
+import           Control.Monad       (guard)
+import           Data.Aeson          (Result (Success), withObject, (.:))
+import qualified Data.Aeson.Types    as JSON
+import           Data.Maybe          (isJust)
+import qualified Data.Text           as T
+import           Network.HTTP.Req    (GET (GET), NoReqBody (NoReqBody),
+                                      defaultHttpConfig, https, jsonResponse,
+                                      req, responseBody, runReq, (/:), (=:))
+import           Parser.Parser       (rest)
+import           Secrets             (yt_key)
+import           Types               (MessageReader, Par (par), Reply (reply))
+import           UnliftIO            (MonadIO (liftIO))
 
-yt :: Command ()
+yt :: (Reply m, MessageReader m, MonadIO m, Alternative m, Par m) => m ()
 yt = do
-    key <- liftIO yt_key
-    ch <- asks messageChannel
-    mArgs <- parse rest
+    query <- par rest
+    guard $ isJust query
 
-    wrappedId <- return $ do
-      jArgs <- mArgs
-      return $ do
-        r <- runReq defaultHttpConfig $ req
+    key <- liftIO yt_key
+
+    request <- runReq defaultHttpConfig $ req
        {-Method-} GET
           {-URL-} (https "www.googleapis.com"/:"youtube"/:"v3"/:"search")
          {-Body-} NoReqBody
@@ -35,22 +32,16 @@ yt = do
         {-Query-}  $ "part" =: ("snippet" :: T.Text)
                   <> "maxResults" =: ("1" :: T.Text)
                   <> "key" =: key
-                  <> "q" =: jArgs
+                  <> "q" =: query
+    json <- return $ withObject "data" $
+            \dat -> do
+              items   <- dat    .: "items"
+              item    <- return  $  head items
+              id      <- item   .: "id"
+              vid     <- id     .: "videoId"
+              return (vid :: T.Text)
 
-        parserId <- return $ withObject "data" $
-          \dat -> do
-            items   <- dat    .: "items"
-            item    <- return  $  head items
-            id      <- item   .: "id"
-            vid     <- id     .: "videoId"
-            return (vid :: T.Text)
+    id <- return $ JSON.parse json $ responseBody request
 
-        return $ JSON.parse parserId $ responseBody r
-
-    videoId <- case wrappedId of Just a -> liftIO a
-                                 _      -> empty
-
-    lift $ case videoId of Success id -> restCall $ R.CreateMessage ch $ "https://youtube.com/watch?v=" <> id
-                           _          -> restCall $ R.CreateMessage ch "Couldn't find anything 😔"
-
-    pure ()
+    case id of Success id -> reply $ "https://youtube.com/watch?v=" <> id
+               _          -> reply $ "Couldn't find anything 😔"

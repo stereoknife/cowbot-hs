@@ -1,14 +1,12 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE MultiWayIf                 #-}
-{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf            #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module Parser.Parser ( Parser (..)
-                     , ParseResult (..)
-                     , alias
                      , prefix
-                     , command
+                     , alias
+                     , arg
                      , args
                      , rest
                      , flag
@@ -18,15 +16,9 @@ module Parser.Parser ( Parser (..)
 
 import           Control.Applicative             (Alternative (..))
 import           Control.Applicative.Combinators (between)
-import           Control.Monad                   (guard)
-import           Control.Monad.State
+import           Control.Monad.State             (guard)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as T
-
-data ParseResult = ParseResult { getPrefix :: Text
-                               , getName   :: Text
-                               , getArgs   :: [Text]
-                               } deriving (Show)
 
 newtype Parser a = Parser { runParser :: Text -> Maybe (a, Text) }
 
@@ -103,19 +95,7 @@ ws = fmap T.pack $ many $ char ' '
 trim :: Parser a -> Parser a
 trim p = ws *> p <* ws
 
-rest :: Parser Text
-rest = Parser $ \s -> Just (s, "")
-
--- -----------------
--- Token generators
--- -----------------
-
-command :: Parser ParseResult
-command = do
-  p <- trim $ string "🤠" <|> string "please cowbot would you "
-  c <- trim word
-  a <- many . trim $ quotedString <|> word
-  return $ ParseResult p c a
+-- exported parsers --
 
 prefix :: Parser Text
 prefix = trim $ string "🤠" <|> string "please cowbot would you "
@@ -123,8 +103,14 @@ prefix = trim $ string "🤠" <|> string "please cowbot would you "
 alias :: Parser Text
 alias = trim word
 
+arg :: Parser Text
+arg = trim $ quotedString <|> word
+
 args :: Parser [Text]
 args = many . trim $ quotedString <|> word
 
 flag :: Text -> Parser Text
 flag = trim . string . ("--" <>)
+
+rest :: Parser Text
+rest = Parser $ \s -> Just (s, "")

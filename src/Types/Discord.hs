@@ -1,17 +1,33 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Types.Discord where
+module Types.Discord ( MonadIO (..)
+                     , MessageReader (..)
+                     , DiscordHandler (..)
+                     , interpret
+                     , liftDH
+                     ) where
 
-import           Control.Monad.Reader       (MonadReader, lift, runReaderT)
-import           Control.Monad.Trans.Reader (ReaderT)
-import qualified Discord                    as D
-import qualified Discord.Internal.Types     as D
+import           Control.Applicative  (Alternative)
+import           Control.Monad.Reader (MonadIO, MonadReader, ReaderT, lift,
+                                       runReaderT)
+import           Control.Monad.State  (MonadState, StateT (StateT), evalStateT)
+import           Data.Text            (Text)
+import qualified Discord              as D
+import           Discord.Types        (Message (messageText))
+import qualified Discord.Types        as D
 
-newtype DiscordHandler a = DiscordHandler { extractHandler :: ReaderT D.Message D.DiscordHandler a }
-    deriving (Functor, Applicative, Monad, MonadFail, MonadReader D.Message)
+
+newtype DiscordHandler a = DiscordHandler { extractHandler :: StateT Text (ReaderT D.Message D.DiscordHandler) a }
+    deriving (Functor, Applicative, Monad, MonadFail, MonadReader D.Message, MonadIO, Alternative, MonadState Text)
+
+type MessageReader = MonadReader D.Message
 
 interpret :: D.Message -> DiscordHandler a -> D.DiscordHandler a
-interpret m dh = runReaderT (extractHandler dh) m
+interpret m d = let dh = extractHandler d
+                    st = evalStateT dh $ messageText m
+                    rd = runReaderT st m
+                 in rd
 
 liftDH :: D.DiscordHandler a -> DiscordHandler a
-liftDH = DiscordHandler . lift
+liftDH = DiscordHandler . lift . lift

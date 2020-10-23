@@ -1,38 +1,67 @@
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Commands.Translate ( comTranslate
                           ) where
 
-import           Commands.Base        (Command, parse')
-import           Control.Monad.Reader (MonadIO (liftIO), asks, lift)
+import           Control.Applicative
+import           Control.Monad.Reader (asks)
+import           Data.Aeson
+import           Data.Aeson.Types     (parseMaybe)
+import           Data.Function        (fix)
+import           Data.Text            (Text, intercalate, intersperse)
 import qualified Data.Text            as T
-import           Discord              (restCall)
-import qualified Discord.Requests     as R
-import           Discord.Types        (Message (messageAuthor, messageChannel))
-import           Parser               (rest)
-import           Translate            (Trans (Trans, fromLang, fromText, success, toLang, toText),
-                                       sendEmbed, translate)
-import           Web.Google.Translate (Lang (..))
+import           Discord              (def)
+import           Discord.Types        (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                       CreateEmbedImage (CreateEmbedImageUrl),
+                                       EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                       Message (messageAuthor),
+                                       User (userAvatar, userId, userName))
+import           Parser.Parser        (arg, args, flag)
+import           Text.Read            (readMaybe)
+import           Types                (MessageReader, Par (par),
+                                       Reply (embed, reply), Translate (..),
+                                       TranslateResult (fromLang, fromText, toLang, toText))
+import           Web.Google.Translate (Lang (..), Source (..), Target (..))
 
-comTranslate :: Command ()
+data Signal a = No | Next | Final a
+
+comTranslate :: (Reply m, Translate m, MessageReader m, Par m) => m ()
 comTranslate = do
-    return $ print "transin"
-    mt <- parse' rest
-    au <- asks messageAuthor
-    ch <- asks messageChannel
+    f' <- par (flag "from" >> arg)
+    t' <- par (flag "to" >> arg)
 
-    transl <- liftIO $ translate mt Nothing $ Just English
+    m <- par args
+    a <- asks messageAuthor
 
-    case transl
-        of Trans { fromText = Just ft
-                  , fromLang = Just fl
-                  , toText = Just tt
-                  , toLang = Just tl
-                  , success = True
-                  } -> do
-                    lift $ restCall $ if ft == tt then R.CreateMessage ch "Nothing to translate.."
-                                                  else R.CreateMessageEmbed ch T.empty $ sendEmbed au (fl, ft) (tl, tt)
-                    return ()
-           _ -> return ()
+    f <- return $  f' >>= parseMaybe (parseJSON @Lang) . String
+    t <- return $ (t' >>= parseMaybe (parseJSON @Lang) . String) <|> Just English
+
+    trans <- case m of Just m  -> translate (Source <$> f) (Target <$> t) $ intercalate " " m
+                       Nothing -> return $ Left "nothing to translate.."
+
+    case trans of Left  t -> reply t
+                  Right t -> embed $ let fr = EmbedField { embedFieldName = fromLang t
+                                                         , embedFieldValue = fromText t
+                                                         , embedFieldInline = Just False
+                                                         }
+
+                                         to = EmbedField { embedFieldName = toLang t
+                                                         , embedFieldValue = toText t
+                                                         , embedFieldInline = Just False
+                                                         }
+
+                                         pic = do av <- userAvatar a
+                                                  pure $ CreateEmbedImageUrl $
+                                                      "https://cdn.discordapp.com/avatars/"
+                                                      <> (T.pack . show $ userId a)
+                                                      <> "/" <> av <> ".png"
+
+                                     in def { createEmbedAuthorName = userName a
+                                           , createEmbedFields     = [fr, to]
+                                           , createEmbedAuthorIcon = pic
+                                           }
 
     return ()

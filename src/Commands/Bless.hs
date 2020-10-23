@@ -1,25 +1,17 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Commands.Bless (bless) where
 
-import           Commands.Base             (Command)
-import           Control.Monad.Combinators (empty)
-import           Control.Monad.Reader      (asks, lift, liftIO)
-import           Data.Aeson                (Result (Success), withArray, (.:))
-import qualified Data.Aeson.Types          as JSON
-import qualified Data.Text                 as T
-import qualified Data.Vector               as V
-import           Discord                   (restCall)
-import qualified Discord.Requests          as R
-import           Discord.Types             (Message (messageChannel))
-import           Network.HTTP.Req          (GET (GET), NoReqBody (NoReqBody),
-                                            defaultHttpConfig, https,
-                                            jsonResponse, req, responseBody,
-                                            runReq, (/:), (=:))
+import           Control.Monad.IO.Class (MonadIO (liftIO))
+import           Data.Aeson             (Result (Success), withArray, (.:))
+import qualified Data.Aeson.Types       as JSON
+import qualified Data.Text              as T
+import qualified Data.Vector            as V
+import           Network.HTTP.Req       (GET (GET), NoReqBody (NoReqBody),
+                                         defaultHttpConfig, https, jsonResponse,
+                                         req, responseBody, runReq, (/:), (=:))
+import           Types                  (MessageReader, Reply (reply))
 
-bless :: Command ()
+bless :: (Reply m, MessageReader m, MonadIO m) => m ()
 bless = do
-    ch <- asks messageChannel
     r <- liftIO $ runReq defaultHttpConfig $ req
        {-Method-} GET
           {-URL-} (https "labs.bible.org" /: "api")
@@ -41,8 +33,5 @@ bless = do
 
     rb <- return $ JSON.parse pb $ responseBody r
 
-    case rb of Success (b, c, v, t) -> lift $ restCall $ R.CreateMessage ch $
-                                        "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
-               _ -> empty
-
-    pure ()
+    case rb of Success (b, c, v, t) -> reply $ "**" <> b <> " " <> c <> ":" <> v <> "** " <> t
+               _                    -> return ()

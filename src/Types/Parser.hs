@@ -1,12 +1,18 @@
 module Types.Parser where
 
-import           Parser.Parser (Parser, runParser)
-import           Types.Discord
+import           Control.Monad.State (MonadState, get, put)
+import           Data.Text           (Text)
+import           Parser.Parser       (runParser)
+import qualified Parser.Parser       as P (Parser (..))
+import           Types.Discord       (DiscordHandler)
 
-class Monad m => Par m where
-    par :: Parser a -> m (Maybe a)
+class MonadState Text m => Par m where
+    par :: P.Parser a -> m (Maybe a)
 
 instance Par DiscordHandler where
-    par p = return $ do
-        -- get text here
-        fst <$> runParser p ""
+    par p = do
+        t <- get
+        case runParser p t of Nothing        -> return Nothing
+                              Just (r, rest) -> do
+                                                put rest
+                                                return $ Just r

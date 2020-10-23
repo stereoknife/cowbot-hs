@@ -1,11 +1,12 @@
-{-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE MultiWayIf #-}
 module Bot where
 
-import           Commands            (commandSwitch, runCommand)
+import           Commands
+import           Commands.Manager    (commandSwitch)
 import           Control.Monad       (forM_, when)
 import qualified Data.Text.IO        as TIO
-import           Discord             (DiscordHandler, RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
+import           Discord             (DiscordHandler,
+                                      RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
                                       def, restCall, runDiscord)
 import qualified Discord.Requests    as R
 import           Discord.Types       (Channel (ChannelText, channelId),
@@ -14,9 +15,9 @@ import           Discord.Types       (Channel (ChannelText, channelId),
                                       Message (messageAuthor, messageText),
                                       PartialGuild (partialGuildId),
                                       User (userIsBot))
-import           Parser              (Parser (..), prefix)
-import           Reactions           (reactionSwitch, runReaction)
+import           Parser.Parser       (Parser (..), alias, prefix)
 import           Secrets             (token)
+import           Types.Discord       (interpret)
 import           UnliftIO            (liftIO)
 import           UnliftIO.Concurrent (threadDelay)
 
@@ -52,14 +53,9 @@ startHandler = do
 eventHandler :: Event -> DiscordHandler ()
 eventHandler event = case event of
       MessageCreate m ->
-        when (not $ fromBot m) $
-          let r = runParser prefix $ messageText m
-          in case r of Just (_, rest) -> do
-                                          runCommand commandSwitch m rest
-                                          pure ()
-                       _               -> pure ()
+        when (not $ fromBot m) $ interpret m commandSwitch
 
-      MessageReactionAdd r -> runReaction reactionSwitch r
+      MessageReactionAdd r -> pure ()
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool

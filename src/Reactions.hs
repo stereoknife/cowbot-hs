@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Reactions (runReaction, reactionSwitch) where
+module Reactions where
 
 import           Control.Monad.Combinators (empty)
 import           Control.Monad.Reader      (ReaderT, asks, lift, liftIO,
@@ -13,11 +13,11 @@ import           Discord.Internal.Rest     (Emoji (emojiName),
                                             Message (messageAuthor, messageText),
                                             ReactionInfo (reactionChannelId, reactionEmoji, reactionMessageId))
 import qualified Discord.Requests          as R
-import           Translate                 (Trans (..), sendEmbed, translate)
 import           Web.Google.Translate      (Lang (..))
 
 type Reaction = ReaderT ReactionInfo DiscordHandler ()
 
+{-}
 runReaction :: ReaderT r m a -> r -> m a
 runReaction = runReaderT
 
@@ -39,6 +39,18 @@ reactionSwitch = do
         | otherwise -> pure ()
     return ()
 
+reactConvert :: Reaction
+reactConvert = do
+    mid <- asks reactionMessageId
+    cid <- asks reactionChannelId
+    msg <- lift $ do
+            ms <- restCall $ R.GetChannelMessage (cid, mid)
+            case ms of Right m -> return $ Just m
+                       _       -> return empty
+
+    ()
+    return ()
+
 reactTranslate :: Maybe Lang -> Reaction
 reactTranslate to = do
     mid <- asks reactionMessageId
@@ -46,8 +58,8 @@ reactTranslate to = do
     em  <- asks $ emojiName . reactionEmoji
     msg <- lift $ do
             restCall $ R.CreateReaction (cid, mid) em
-            em <- restCall $ R.GetChannelMessage (cid, mid)
-            case em of Right m -> return $ Just m
+            ms <- restCall $ R.GetChannelMessage (cid, mid)
+            case ms of Right m -> return $ Just m
                        _       -> return empty
 
     transl <- case messageText <$> msg
@@ -67,3 +79,4 @@ reactTranslate to = do
                                                   else R.CreateMessageEmbed cid T.empty $ sendEmbed ma (fl, ft) (tl, tt)
                     return ()
            _ -> return ()
+-}
