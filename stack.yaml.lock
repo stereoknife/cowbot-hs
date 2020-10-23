@@ -33,6 +33,34 @@ packages:
   original:
     hackage: req-3.6.0
 - completed:
+    hackage: polysemy-1.3.0.0@sha256:fa76e96a883fd1c4bdbad792a0a9d88f59f84817651aea5c71d9b4f74e42c5b6,6141
+    pantry-tree:
+      size: 4309
+      sha256: 3d2fb15ddda9053f6bfd4b0810a79a9542505acb5e7e528856ec3cd86d6df066
+  original:
+    hackage: polysemy-1.3.0.0
+- completed:
+    hackage: polysemy-zoo-0.7.0.1@sha256:60c2921df95f61d43222a75adde4f330e9510320b416132838a354cd81b4bcc5,3846
+    pantry-tree:
+      size: 2979
+      sha256: af39e295a7831e6bca01fa78df6c538cb6f1dfb339d118056fd0d9c314925726
+  original:
+    hackage: polysemy-zoo-0.7.0.1
+- completed:
+    hackage: polysemy-plugin-0.2.5.1@sha256:61c6c0aad2852377aa5d5a8f9639a437905e3a6f0e2a99a41e96fb231dc86836,2952
+    pantry-tree:
+      size: 1232
+      sha256: 9720d9a1675c7ac3e2635b8c9f002f7ab0764eb60738a3405603cb33bdffc493
+  original:
+    hackage: polysemy-plugin-0.2.5.1
+- completed:
+    hackage: compact-0.2.0.0@sha256:9c5785bdc178ea6cf8f514ad35a78c64220e3cdb22216534e4cf496765551c7e,2345
+    pantry-tree:
+      size: 546
+      sha256: 6f7da573fbcddc109e1521edc07f1b34d7506473a3930074453e829daf901d71
+  original:
+    hackage: compact-0.2.0.0
+- completed:
     name: google-translate
     version: '0.5'
     git: https://github.com/dmjio/google-translate.git
