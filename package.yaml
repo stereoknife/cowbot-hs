@@ -40,6 +40,7 @@ dependencies:
 - free == 5.1.3
 - polysemy == 1.3.0.0
 - polysemy-zoo == 0.7.0.1
+- html-entities == 1.1.4.3
 
 library:
   source-dirs: src
@@ -68,5 +69,4 @@ tests:
 
 default-extensions:
 - OverloadedStrings
-- FlexibleContexts
 - GeneralizedNewtypeDeriving

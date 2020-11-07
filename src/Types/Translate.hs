@@ -8,6 +8,9 @@ import           Data.Bifunctor          (Bifunctor (first))
 import           Data.Map                ((!?))
 import qualified Data.Map                as M
 import           Data.Text               (Text, pack)
+import           Data.Text.Lazy          (toStrict)
+import           Data.Text.Lazy.Builder  (toLazyText)
+import           HTMLEntities.Decoder    (htmlEncodedText)
 import           Network.HTTP.Client     (Manager)
 import           Network.HTTP.Client.TLS (newTlsManager)
 import           Secrets                 (tr_key)
@@ -56,7 +59,7 @@ instance Translate (DiscordFTL r) where
               then Left "nothing to translate.."
               else return $ Result { fromText = b
                                     , fromLang = extract $ langNames !? f <|> Just f
-                                    , toText = r
+                                    , toText = toStrict . toLazyText $ htmlEncodedText r
                                     , toLang = extract $ let tl = unTarget t
                                                          in (langNames !? (pack $ show tl)) <|> (Just $ pack $ show tl)
                                     }

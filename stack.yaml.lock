@@ -61,6 +61,13 @@ packages:
   original:
     hackage: compact-0.2.0.0
 - completed:
+    hackage: html-entities-1.1.4.3@sha256:633b0bef1bb7dde756226d6856437045422f431670f7fda772553bb96a610d81,1829
+    pantry-tree:
+      size: 585
+      sha256: 0f39d590008c6ad0b0edb7db4cfc82cb9d05255245842df409030ab20558f02a
+  original:
+    hackage: html-entities-1.1.4.3
+- completed:
     name: google-translate
     version: '0.5'
     git: https://github.com/dmjio/google-translate.git

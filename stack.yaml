@@ -48,6 +48,7 @@ extra-deps:
 - polysemy-zoo-0.7.0.1
 - polysemy-plugin-0.2.5.1
 - compact-0.2.0.0
+- html-entities-1.1.4.3
 - git: https://github.com/dmjio/google-translate.git
   commit: 009babb1aa4a3b569bfda7393d3a8122ca879adf
 
