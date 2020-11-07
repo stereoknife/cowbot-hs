@@ -12,13 +12,14 @@ import           Network.HTTP.Client     (Manager)
 import           Network.HTTP.Client.TLS (newTlsManager)
 import           Secrets                 (tr_key)
 import           System.Random           (getStdRandom, randomR)
-import           Types.Discord           (DiscordHandler)
+import           Types.Discord           (DiscordFTL)
 import           Web.Google.Translate    (Body (..), Key (..), Lang (..),
                                           Source (..), Target (..),
                                           TranslatedText (..),
                                           detectedSourceLanguage,
                                           translatedText, translations)
 import qualified Web.Google.Translate    as TR (translate)
+
 type Message = Text
 
 manager :: IO Manager
@@ -33,7 +34,7 @@ data TranslateResult = Result { fromText :: Text
 class Monad m => Translate m where
   translate :: Maybe Source -> Maybe Target -> Message -> m (Either Text TranslateResult)
 
-instance Translate DiscordHandler where
+instance Translate (DiscordFTL r) where
     translate s t' b = do
         k <- liftIO $ Key <$> tr_key
         m <- liftIO $ manager

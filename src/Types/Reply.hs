@@ -2,15 +2,17 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiWayIf                 #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 module Types.Reply where
 
+import           Control.Applicative
 import           Control.Monad.Reader (asks)
 import           Data.Text            (Text, pack)
 import           Discord              (restCall)
 import qualified Discord.Requests     as R
 import qualified Discord.Types        as D
-import           Types.Discord        (DiscordHandler, liftDH)
+import           Types.Discord        (Command, Reaction, dis)
 
 class (Monad m) => Reply m where
     reply :: Text -> m ()
@@ -31,25 +33,50 @@ instance Textable Char
 instance Textable Text where
     tshow = id
 
-instance Reply DiscordHandler where
+instance Reply Command where
     reply t = do
         ch <- asks D.messageChannel
-        liftDH $ restCall $ R.CreateMessage ch t
+        dis $ restCall $ R.CreateMessage ch t
         return ()
 
     whisper t = do
         au <- asks $ D.userId . D.messageAuthor
-        Right ch <- liftDH $ restCall $ R.CreateDM au
-        liftDH $ restCall $ R.CreateMessage (D.channelId ch) t
+        ch <- dis $ restCall $ R.CreateDM au
+        case ch of Left _ -> empty
+                   Right ch' -> dis $ restCall $ R.CreateMessage (D.channelId ch') t
         return ()
 
     react e = do
         c <- asks D.messageChannel
         m <- asks D.messageId
-        liftDH $ restCall $ R.CreateReaction (c, m) e
+        dis $ restCall $ R.CreateReaction (c, m) e
         return ()
 
     embed e = do
         ch <- asks D.messageChannel
-        liftDH $ restCall $ R.CreateMessageEmbed ch "" e
+        dis $ restCall $ R.CreateMessageEmbed ch "" e
+        return ()
+
+instance Reply Reaction where
+    reply t = do
+        ch <- asks D.reactionChannelId
+        dis $ restCall $ R.CreateMessage ch t
+        return ()
+
+    whisper t = do
+        au <- asks D.reactionUserId
+        ch <- dis $ restCall $ R.CreateDM au
+        case ch of Left _ -> empty
+                   Right ch' -> dis $ restCall $ R.CreateMessage (D.channelId ch') t
+        return ()
+
+    react e = do
+        c <- asks D.reactionChannelId
+        m <- asks D.reactionMessageId
+        dis $ restCall $ R.CreateReaction (c, m) e
+        return ()
+
+    embed e = do
+        ch <- asks D.reactionChannelId
+        dis $ restCall $ R.CreateMessageEmbed ch "" e
         return ()

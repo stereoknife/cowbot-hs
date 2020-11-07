@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Commands.Bless (bless) where
 
 import           Control.Monad.IO.Class (MonadIO (liftIO))
@@ -8,9 +10,9 @@ import qualified Data.Vector            as V
 import           Network.HTTP.Req       (GET (GET), NoReqBody (NoReqBody),
                                          defaultHttpConfig, https, jsonResponse,
                                          req, responseBody, runReq, (/:), (=:))
-import           Types                  (MessageReader, Reply (reply))
+import           Types                  (Reply (reply))
 
-bless :: (Reply m, MessageReader m, MonadIO m) => m ()
+bless :: (Reply m, MonadIO m) => m ()
 bless = do
     r <- liftIO $ runReq defaultHttpConfig $ req
        {-Method-} GET

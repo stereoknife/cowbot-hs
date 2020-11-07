@@ -1,7 +1,7 @@
 module Types.Command where
 
 import           Data.Text     (Text)
-import           Types.Discord (DiscordHandler (..))
+import           Types.Discord (DiscordFTL (..))
 
 newtype CommandId = CommandId Text
 
@@ -29,5 +29,5 @@ describe d c = c{desc = d}
 class Monad m => Permission m where
     check :: m Bool
 
-instance Permission DiscordHandler where
+instance Permission (DiscordFTL r) where
     check = return True

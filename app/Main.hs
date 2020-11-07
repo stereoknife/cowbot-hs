@@ -1,6 +1,6 @@
 module Main where
 
-import Bot
+import           Bot
 
 main :: IO ()
-main = pingpongExample
+main = runBot

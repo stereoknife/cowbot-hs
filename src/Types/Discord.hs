@@ -1,33 +1,61 @@
 {-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE PolyKinds                  #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 module Types.Discord ( MonadIO (..)
-                     , MessageReader (..)
-                     , DiscordHandler (..)
+                     , DiscordFTL (..)
+                     , DiscordRequest (..)
+                     , Command
+                     , Reaction
                      , interpret
-                     , liftDH
                      ) where
 
-import           Control.Applicative  (Alternative)
-import           Control.Monad.Reader (MonadIO, MonadReader, ReaderT, lift,
-                                       runReaderT)
-import           Control.Monad.State  (MonadState, StateT (StateT), evalStateT)
+import           Control.Applicative
+import           Control.Monad.Reader (MonadIO, MonadReader, ReaderT (..), ask,
+                                       asks, lift, runReaderT, withReaderT)
 import           Data.Text            (Text)
-import qualified Discord              as D
-import           Discord.Types        (Message (messageText))
-import qualified Discord.Types        as D
+
+import           Control.Monad.State
+import           Discord              (DiscordHandler)
+import           Discord.Types        (Message, ReactionInfo)
 
 
-newtype DiscordHandler a = DiscordHandler { extractHandler :: StateT Text (ReaderT D.Message D.DiscordHandler) a }
-    deriving (Functor, Applicative, Monad, MonadFail, MonadReader D.Message, MonadIO, Alternative, MonadState Text)
+class (Monad m) => DiscordRequest m where
+    dis :: DiscordHandler a -> m a
 
-type MessageReader = MonadReader D.Message
+instance DiscordRequest (DiscordFTL r) where
+    dis = DiscordFTL . lift . lift
 
-interpret :: D.Message -> DiscordHandler a -> D.DiscordHandler a
-interpret m d = let dh = extractHandler d
-                    st = evalStateT dh $ messageText m
-                    rd = runReaderT st m
-                 in rd
+newtype DiscordFTL r a = DiscordFTL { runDiscordFTL :: StateT Text (ReaderT r DiscordHandler) a  }
+    deriving (Functor, Applicative, Monad, MonadFail, MonadIO, Alternative, MonadReader r, MonadState Text)
 
-liftDH :: D.DiscordHandler a -> DiscordHandler a
-liftDH = DiscordHandler . lift . lift
+type Command = DiscordFTL Message
+type Reaction = DiscordFTL ReactionInfo
+
+interpret' :: r -> (r -> Text) -> DiscordFTL r a -> DiscordHandler a
+interpret' msg f = runReaderT' msg . evalStateT' (f msg) . runDiscordFTL
+    where runReaderT' = flip runReaderT
+          evalStateT' = flip evalStateT
+
+class DiscordAction r d where
+    interpret :: r -> (r -> Text) -> d a -> DiscordHandler a
+
+instance DiscordAction Message Command where
+    interpret msg f = runReaderT' msg . evalStateT' (f msg) . runDiscordFTL
+        where runReaderT' = flip runReaderT
+              evalStateT' = flip evalStateT
+
+instance DiscordAction ReactionInfo Reaction where
+    interpret ri f = runReaderT' ri . evalStateT' (f ri) . runDiscordFTL
+        where runReaderT' = flip runReaderT
+              evalStateT' = flip evalStateT

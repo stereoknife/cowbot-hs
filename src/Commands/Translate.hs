@@ -6,12 +6,10 @@
 module Commands.Translate ( comTranslate
                           ) where
 
-import           Control.Applicative
-import           Control.Monad.Reader (asks)
-import           Data.Aeson
+import           Control.Applicative  (Alternative ((<|>)))
+import           Data.Aeson           (FromJSON (parseJSON), Value (String))
 import           Data.Aeson.Types     (parseMaybe)
-import           Data.Function        (fix)
-import           Data.Text            (Text, intercalate, intersperse)
+import           Data.Text            (intercalate)
 import qualified Data.Text            as T
 import           Discord              (def)
 import           Discord.Types        (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
@@ -20,21 +18,20 @@ import           Discord.Types        (CreateEmbed (createEmbedAuthorIcon, creat
                                        Message (messageAuthor),
                                        User (userAvatar, userId, userName))
 import           Parser.Parser        (arg, args, flag)
-import           Text.Read            (readMaybe)
-import           Types                (MessageReader, Par (par),
+import           Types                (MessageData (..), Parser (parse),
                                        Reply (embed, reply), Translate (..),
                                        TranslateResult (fromLang, fromText, toLang, toText))
 import           Web.Google.Translate (Lang (..), Source (..), Target (..))
 
 data Signal a = No | Next | Final a
 
-comTranslate :: (Reply m, Translate m, MessageReader m, Par m) => m ()
+comTranslate :: (Reply m, Translate m, MessageData m, Parser m) => m ()
 comTranslate = do
-    f' <- par (flag "from" >> arg)
-    t' <- par (flag "to" >> arg)
+    f' <- parse (flag "from" >> arg)
+    t' <- parse (flag "to" >> arg)
 
-    m <- par args
-    a <- asks messageAuthor
+    m <- parse args
+    a <- askMessage messageAuthor
 
     f <- return $  f' >>= parseMaybe (parseJSON @Lang) . String
     t <- return $ (t' >>= parseMaybe (parseJSON @Lang) . String) <|> Just English

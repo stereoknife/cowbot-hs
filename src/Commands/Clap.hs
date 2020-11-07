@@ -1,19 +1,18 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Commands.Clap where
 
-import           Control.Applicative
-import           Data.Maybe          (fromMaybe)
-import           Data.Text           (intercalate)
-import           Parser.Parser       (arg, args, flag)
-import           Types               (MessageReader, Par (..), Reply, par,
-                                      reply)
-import           UnliftIO            (MonadIO (liftIO))
+import           Data.Maybe    (fromMaybe)
+import           Data.Text     (intercalate)
+import           Parser.Parser (arg, args, flag)
+import           Types         (Parser, Reply, parse, reply)
+import           Types.Discord (MonadIO (liftIO))
 
-clap :: (Reply m, MessageReader m, Par m, MonadIO m) => m ()
+clap :: (Reply m, Parser m, MonadIO m) => m ()
 clap = do
-  e <- par $ (flag "e") >> arg
-  ar <- par args
-  let inr = fromMaybe "👏" e
+  --e <- parse $ (flag "e") >> arg
+  ar <- parse args
+  let inr = fromMaybe "👏" Nothing
   reply $ intercalate inr (fromMaybe [""] ar) <> inr
 

@@ -1,9 +1,10 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Commands.Youtube where
 
-import           Control.Applicative
+import           Control.Applicative (Alternative)
 import           Control.Monad       (guard)
 import           Data.Aeson          (Result (Success), withObject, (.:))
 import qualified Data.Aeson.Types    as JSON
@@ -14,12 +15,12 @@ import           Network.HTTP.Req    (GET (GET), NoReqBody (NoReqBody),
                                       req, responseBody, runReq, (/:), (=:))
 import           Parser.Parser       (rest)
 import           Secrets             (yt_key)
-import           Types               (MessageReader, Par (par), Reply (reply))
+import           Types               (Parser (parse), Reply (reply))
 import           UnliftIO            (MonadIO (liftIO))
 
-yt :: (Reply m, MessageReader m, MonadIO m, Alternative m, Par m) => m ()
+yt :: (Reply m, MonadIO m, Alternative m, Parser m) => m ()
 yt = do
-    query <- par rest
+    query <- parse rest
     guard $ isJust query
 
     key <- liftIO yt_key

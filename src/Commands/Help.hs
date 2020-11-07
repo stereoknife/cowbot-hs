@@ -1,15 +1,12 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Commands.Help where
 
-import           Control.Monad.Reader (asks, lift)
-import           Discord              (restCall)
-import qualified Discord.Requests     as R
-import           Discord.Types        (Message (messageChannel))
-import           Parser.Parser        (flag)
-import           Types
+import           Parser.Parser (flag)
+import           Types         (Message, Parser, Reply (reply), parse)
 
-help :: (Reply m, Par m) => m ()
+help :: (Reply m, Parser m) => m ()
 help = do
-  vm <- par $ flag "version"
+  vm <- parse $ flag "version"
   let v = case vm of Nothing -> False
                      Just _  -> True
   reply

@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiWayIf       #-}
 
 module Commands.Manager where
 
@@ -8,13 +9,14 @@ import           Commands.Translate  (comTranslate)
 import           Commands.Youtube    (yt)
 import           Control.Applicative (Alternative (empty))
 import           Parser.Parser       (alias, prefix)
-import           Types               (MessageReader, Par (..), Reply, Translate)
-import           Types.Discord       (MonadIO)
+import           Types               (MessageData, Parser (..), Reply,
+                                      Translate)
+import           Types.Discord       (Command, MonadIO, liftIO)
 
-commandSwitch :: (Reply m, MessageReader m, Par m, MonadFail m, Alternative m, MonadIO m, Translate m) => m ()
+commandSwitch :: Command ()
 commandSwitch = do
-    par prefix >>= extract
-    a <- par alias  >>= extract
+    parse prefix >>= extract
+    a <- parse alias  >>= extract
     if
         | a == "clap"  -> clap
         | a == "bless" -> bless
