@@ -3,4 +3,3 @@ token.secret
 .DS_Store
 .stack-work/
 *.secret
-*.cabal
