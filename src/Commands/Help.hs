@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Commands.Help where
 
+import           Bot.Internal  (Parser, Reply (reply), parse)
 import           Parser.Parser (flag)
-import           Types         (Message, Parser, Reply (reply), parse)
 
 help :: (Reply m, Parser m) => m ()
 help = do

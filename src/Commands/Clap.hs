@@ -3,13 +3,12 @@
 
 module Commands.Clap where
 
+import           Bot.Internal  (Parser, Reply, parse, reply)
 import           Data.Maybe    (fromMaybe)
 import           Data.Text     (intercalate)
 import           Parser.Parser (arg, args, flag)
-import           Types         (Parser, Reply, parse, reply)
-import           Types.Discord (MonadIO (liftIO))
 
-clap :: (Reply m, Parser m, MonadIO m) => m ()
+clap :: (Reply m, Parser m) => m ()
 clap = do
   --e <- parse $ (flag "e") >> arg
   ar <- parse args

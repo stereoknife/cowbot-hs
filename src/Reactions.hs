@@ -4,6 +4,11 @@
 
 module Reactions where
 
+{-}
+import           Bot.Internal          (DiscordRequest (..),
+                                        MessageData (askMessage),
+                                        ReactionData (askReaction),
+                                        Reply (embed, reply))
 import           Control.Applicative   (Alternative)
 import           Control.Monad.Reader  (ReaderT, guard, runReaderT)
 import qualified Data.Text             as T
@@ -16,14 +21,9 @@ import           Discord.Types         (CreateEmbed (createEmbedAuthorIcon, crea
                                         EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
                                         Message (..),
                                         User (userAvatar, userId, userName))
-import           Types                 (DiscordRequest (..),
-                                        MessageData (askMessage),
-                                        ReactionData (askReaction),
-                                        Reply (embed, reply), Translate (..),
-                                        TranslateResult (fromLang, fromText, toLang, toText))
-import           Web.Google.Translate  (Lang (..), Target (..))
 
 type Reaction = ReaderT ReactionInfo DiscordHandler ()
+
 
 runReaction :: ReaderT r m a -> r -> m a
 runReaction = runReaderT
@@ -91,5 +91,5 @@ reactTranslate l = do
                                            , createEmbedFields     = [fr, to]
                                            , createEmbedAuthorIcon = pic
                                            }
-
+-}
 

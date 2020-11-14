@@ -1,10 +1,10 @@
 module Commands ( bless
                 , clap
-                , comTranslate
+                , translate
                 , yt
                 ) where
 
 import           Commands.Bless     (bless)
 import           Commands.Clap      (clap)
-import           Commands.Translate (comTranslate)
+import           Commands.Translate (translate)
 import           Commands.Youtube   (yt)

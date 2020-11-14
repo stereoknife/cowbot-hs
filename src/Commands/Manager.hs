@@ -3,15 +3,13 @@
 
 module Commands.Manager where
 
+import           Bot.Internal        (Command, MessageData, Parser (..), Reply)
 import           Commands.Bless      (bless)
 import           Commands.Clap       (clap)
-import           Commands.Translate  (comTranslate)
+import           Commands.Translate  (translate)
 import           Commands.Youtube    (yt)
 import           Control.Applicative (Alternative (empty))
 import           Parser.Parser       (alias, prefix)
-import           Types               (MessageData, Parser (..), Reply,
-                                      Translate)
-import           Types.Discord       (Command, MonadIO, liftIO)
 
 commandSwitch :: Command ()
 commandSwitch = do
@@ -20,7 +18,7 @@ commandSwitch = do
     if
         | a == "clap"  -> clap
         | a == "bless" -> bless
-        | a == "t"     -> comTranslate
+        | a == "t"     -> translate
         | a == "yt"    -> yt
         | otherwise    -> return ()
 

@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 module Bot (runBot) where
 
+import           Bot.Internal
 import           Commands
 import           Control.Applicative  (Alternative (empty))
 import           Control.Monad        (forM_, guard, when)
@@ -20,13 +21,11 @@ import           Discord.Types        (Channel (ChannelText, channelId),
                                        reactionChannelId, reactionEmoji,
                                        reactionMessageId)
 import           Parser.Parser        (Parser (..), alias, prefix)
-import           Reactions            (reactTranslate)
+--import           Reactions           (translate)
+import           Bot.Internal.Discord (interpret)
 import           Secrets              (token)
-import           Types
-import           Types.Discord        (Command, Reaction, interpret)
 import           UnliftIO             (liftIO)
 import           UnliftIO.Concurrent  (threadDelay)
-import           Web.Google.Translate (Lang (English))
 
 
 runBot :: IO ()
@@ -62,7 +61,7 @@ eventHandler event = case event of
       MessageCreate m ->
         when (not $ fromBot m) $ interpret m messageText commandSwitch
 
-      MessageReactionAdd r -> interpret r (const "") reactionSwitch
+      --MessageReactionAdd r -> interpret r (const "") reactionSwitch
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool
@@ -79,13 +78,14 @@ commandSwitch = do
     if
         | a == "clap"  -> clap
         | a == "bless" -> bless
-        | a == "t"     -> comTranslate
+        | a == "t"     -> translate
         | a == "yt"    -> yt
         | otherwise    -> return ()
 
     where extract (Just x) = pure x
           extract Nothing  = empty
 
+{-}
 reactionSwitch :: Reaction ()
 reactionSwitch = do
     mid <- askReaction reactionMessageId
@@ -105,3 +105,4 @@ reactionSwitch = do
         | otherwise -> pure ()
 
     return ()
+-}

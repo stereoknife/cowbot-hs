@@ -4,6 +4,7 @@
 
 module Commands.Youtube where
 
+import           Bot.Internal        (Parser (parse), Reply (reply))
 import           Control.Applicative (Alternative)
 import           Control.Monad       (guard)
 import           Data.Aeson          (Result (Success), withObject, (.:))
@@ -15,7 +16,6 @@ import           Network.HTTP.Req    (GET (GET), NoReqBody (NoReqBody),
                                       req, responseBody, runReq, (/:), (=:))
 import           Parser.Parser       (rest)
 import           Secrets             (yt_key)
-import           Types               (Parser (parse), Reply (reply))
 import           UnliftIO            (MonadIO (liftIO))
 
 yt :: (Reply m, MonadIO m, Alternative m, Parser m) => m ()
