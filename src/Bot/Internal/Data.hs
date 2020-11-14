@@ -1,16 +1,16 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Types.Data where
+module Bot.Internal.Data where
 
+import           Bot.Internal.Discord          (DiscordFTL,
+                                                DiscordRequest (dis))
 import           Control.Applicative           (Alternative (empty))
 import           Control.Monad.Reader          (ask, asks)
 import           Discord                       (restCall)
 import qualified Discord.Internal.Rest.Channel as R
 import           Discord.Types                 (Message,
                                                 ReactionInfo (reactionChannelId, reactionMessageId))
-import           Types.Discord                 (DiscordFTL,
-                                                DiscordRequest (dis))
 
 class Monad m => MessageData m where
     message :: m Message

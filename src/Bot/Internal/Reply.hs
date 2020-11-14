@@ -4,15 +4,15 @@
 {-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
-module Types.Reply where
+module Bot.Internal.Reply where
 
-import           Control.Applicative
+import           Bot.Internal.Discord (Command, Reaction, dis)
+import           Control.Applicative  (Alternative (empty))
 import           Control.Monad.Reader (asks)
 import           Data.Text            (Text, pack)
 import           Discord              (restCall)
 import qualified Discord.Requests     as R
 import qualified Discord.Types        as D
-import           Types.Discord        (Command, Reaction, dis)
 
 class (Monad m) => Reply m where
     reply :: Text -> m ()

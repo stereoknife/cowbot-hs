@@ -1,7 +1,7 @@
-module Types.Command where
+module Bot.Internal.Command where
 
-import           Data.Text     (Text)
-import           Types.Discord (DiscordFTL (..))
+import           Bot.Internal.Discord (DiscordFTL (..))
+import           Data.Text            (Text)
 
 newtype CommandId = CommandId Text
 
