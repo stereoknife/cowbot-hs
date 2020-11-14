@@ -1,0 +1,7 @@
+packages: .
+
+source-repository-package
+  type: git
+  branch: master
+  location: https://github.com/dmjio/google-translate.git
+  tag: 009babb1aa4a3b569bfda7393d3a8122ca879adf
