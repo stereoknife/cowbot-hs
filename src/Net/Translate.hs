@@ -8,17 +8,25 @@
 module Net.Translate (translateRequest, TranslationResponse (..), Translate) where
 
 import           Control.Applicative    (Alternative ((<|>)))
+import           Control.Monad          (guard)
 import           Control.Monad.Catch    (MonadThrow)
-import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson             (FromJSON (parseJSON), ToJSON, encode,
                                          withObject, (.:), (.:?))
 import           Data.Maybe             (fromMaybe)
-import           Data.Text              (Text)
+import           Data.Text              (Text, pack, unpack)
+import           Data.Text.Encoding     (encodeUtf8)
 import           Data.Text.Lazy         (toStrict)
 import           Data.Text.Lazy.Builder (toLazyText)
+import           Debug.Trace            (trace)
 import           GHC.Generics           (Generic)
 import           HTMLEntities.Decoder   (htmlEncodedText)
 import           Net.Internal.Request   (URL (..), post)
+import           Network.HTTP.Simple
+import           Network.HTTP.Types     (hContentType)
+import           Secrets                (tr_key)
+import           Types.Translate        (Lang, asShortCodeT, fromShortCode,
+                                         langNameT)
 
 type Translate m = (MonadIO m, MonadThrow m)
 
@@ -36,38 +44,47 @@ data TranslationResponse = TranslationResponse
     , toLang   :: Text
     } deriving (Show)
 
-newtype APIResponse = APIResponse (Text, Maybe Text)
+data APIResponse = APIResponse { translation  :: Text
+                               , detectedLang :: Maybe Lang
+                               } deriving (Show)
 
 instance ToJSON Body where
 instance FromJSON Body where
 
 instance FromJSON APIResponse where
-    parseJSON = withObject "data" $ \v -> do
-        (t:_) <- v .: "translations"
+    parseJSON = withObject "" $ \v -> do
+        d <- v .: "data"
+        (t:_) <- d .: "translations"
         tx <- t .: "translatedText"
         tl <- t .:? "detectedSourceLanguage"
-        return $ APIResponse (tx, tl)
+        return $ APIResponse tx tl
 
-gapi :: URL
-gapi = URL "https://translation.googleapis.com/language/translate/v2"
-
-
-translateRequest :: (MonadIO m, MonadThrow m) => Maybe Text -> Text -> Text -> m (Either String TranslationResponse)
+translateRequest :: (MonadIO m, MonadThrow m, Alternative m) => Maybe Lang -> Lang -> Text -> m (Either String TranslationResponse)
 translateRequest from to query = do
-    let initialData = TranslationResponse { fromText = query
-                                          , fromLang = fromMaybe "" from
-                                          , toText = ""
-                                          , toLang = ""
-                                          }
 
-    response <- post @APIResponse gapi $ encode $ Body query from to "text"
-    asserted <- return $ assert response "nothing to translate.."
+    key <- liftIO $ tr_key
 
-    return $ flip fmap asserted $ \(t, ml) ->
-        initialData { fromLang = fromMaybe "who knever knows.." $ ml <|> from
-                    , toText = t
-                    , toLang = toStrict . toLazyText $ htmlEncodedText to
-                    }
+    initialRequest <- parseRequest "https://translation.googleapis.com/"
+    let request
+            = setRequestPath "/language/translate/v2"
+            $ setRequestMethod "POST"
+            $ setRequestQueryString [("key", Just $ encodeUtf8 key)]
+            $ setRequestBodyJSON (Body query (asShortCodeT <$> from) (asShortCodeT to) "text")
+            $ setRequestHeader hContentType ["application/json; charset=utf-8"]
+            $ setRequestIgnoreStatus
+            $ initialRequest
 
-    where assert (Right (APIResponse (t, ml))) fail = if t == query then Left fail else Right (t, ml)
-          assert _ fail = Left fail
+    response <- httpJSON request
+    guard $ (let s = getResponseStatusCode response in s >= 200 && s < 300)
+
+    let resBody = getResponseBody @APIResponse response
+        resText = toStrict . toLazyText $ htmlEncodedText $ translation resBody
+    return $
+        if resText == query
+        then Left "nothing to translate.."
+        else Right $
+            TranslationResponse { fromText = query
+                                , fromLang =  fromMaybe "who knever knows.." $ langNameT <$> (detectedLang resBody <|> from)
+                                , toText = resText
+                                , toLang = langNameT to
+                                }

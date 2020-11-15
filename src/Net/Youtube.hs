@@ -4,17 +4,17 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Net.Youtube (youtubeRequest, YoutubeResponse) where
+module Net.Youtube (youtubeRequest) where
 
-import           Control.Applicative    (Alternative ((<|>)))
 import           Control.Monad.Catch    (MonadThrow)
-import           Control.Monad.IO.Class (MonadIO)
-import           Data.Aeson             (FromJSON (parseJSON), ToJSON, encode,
-                                         withObject, (.:), (.:?))
-import           Data.Maybe             (fromMaybe)
-import           Data.Text              (Text)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Aeson             (FromJSON (parseJSON), ToJSON,
+                                         withObject, (.:))
+import           Data.Text              (Text, pack, unpack)
 import           GHC.Generics           (Generic)
-import           Net.Internal.Request   (URL (..), post)
+import           Net.Internal.Request   (Query (..), URL (..), get)
+import           Network.HTTP.Base      (urlEncodeVars)
+import           Secrets                (yt_key)
 
 data Body = Body
     { q          :: Text
@@ -23,9 +23,7 @@ data Body = Body
     , part       :: Text
     } deriving (Generic, Show)
 
-newtype YoutubeResponse = YoutubeResponse { videoId :: Text }
-
-newtype APIResponse = APIResponse Text
+newtype APIResponse = APIResponse { getText :: Text } deriving (Show)
 
 instance ToJSON Body where
 instance FromJSON Body where
@@ -38,9 +36,10 @@ instance FromJSON APIResponse where
         return $ APIResponse vid
 
 gapi :: URL
-gapi = URL "www.googleapis.com/youtube/v3/search/"
+gapi = URL "https://www.googleapis.com/youtube/v3/search/"
 
 youtubeRequest :: (MonadIO m, MonadThrow m) => Text -> m (Either String Text)
 youtubeRequest query = do
-    response <- get @APIResponse gapi $ Query query
-    return response
+    key <- unpack <$> liftIO yt_key
+    response <- get @APIResponse gapi $ Query . pack $ urlEncodeVars [("key", key),("q", unpack query)]
+    return $ getText <$> response
