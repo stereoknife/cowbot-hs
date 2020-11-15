@@ -27,14 +27,17 @@ common deps
   build-depends:
       aeson
     , base >=4.7 && <5
-    , bytestring
+    , bytestring >= 0.10 && < 0.11
     , exceptions
     , containers
     , discord-haskell >= 1.8.0 && < 1.9
-    , emoji 
+    , emoji
     , html-entities
-    , http-client
+    , HTTP >= 4000.3 && < 4000.4
+    , http-client == 0.7.2.1
     , http-client-tls
+    , http-conduit >= 2.3 && < 2.4
+    , http-types >= 0.12 && < 0.13
     , mtl
     , parser-combinators
     , random
@@ -55,6 +58,7 @@ library
       Bot.Internal.Discord
       Bot.Internal.Parser
       Bot.Internal.Reply
+      Bot.Internal.Net
       Commands
       Commands.Bless
       Commands.Clap
@@ -64,12 +68,15 @@ library
       Commands.Youtube
       Net
       Net.Translate
+      Net.Youtube
+      Net.Bless
       Net.Internal.Request
       Parser.Interpreter
       Parser.Parser
       Reactions
       Secrets
-      
+      Types.Translate
+
   other-modules:
       Paths_cowbot
   hs-source-dirs:
