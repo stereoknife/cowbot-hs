@@ -6,29 +6,38 @@
 module Commands.Translate ( translate
                           ) where
 
-import           Bot.Internal  (MessageData (..), Parser (parse),
-                                Reply (embed, reply))
-import           Data.Maybe    (fromMaybe)
-import           Data.Text     (intercalate, pack)
-import           Discord       (def)
-import           Discord.Types (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
-                                CreateEmbedImage (CreateEmbedImageUrl),
-                                EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
-                                Message (messageAuthor),
-                                User (userAvatar, userId, userName))
-import           Net.Translate (Translate, TranslationResponse (..),
-                                translateRequest)
-import           Parser.Parser (arg, args, flag)
+import           Bot.Internal     (MessageData (..), Parser (parse),
+                                   Reply (embed, reply))
+import           Bot.Internal.Net (Net)
+import           Data.Maybe       (fromMaybe)
+import           Data.Text        (intercalate, pack)
+import           Discord          (def)
+import           Discord.Types    (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                   CreateEmbedImage (CreateEmbedImageUrl),
+                                   EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                   Message (messageAuthor),
+                                   User (userAvatar, userId, userName))
+import           Net.Translate    (Translate, TranslationResponse (..),
+                                   translateRequest)
+import           Parser.Parser    (arg, args, flag)
+import           Types.Translate  (Lang (English), fromShortCodeT)
 
-translate :: (Reply m, Translate m, MessageData m, Parser m) => m ()
+
+(<?>) :: Maybe c -> c -> c
+(<?>) = flip fromMaybe
+
+translate :: (Reply m, Translate m, MessageData m, Parser m, Net m) => m ()
 translate = do
-    f <- parse (flag "from" >> arg)
-    t <- parse (flag "to" >> arg)
+    --f' <- parse (flag "from" >> arg)
+    --t' <- parse (flag "to" >> arg)
 
     m <- parse args
     a <- askMessage messageAuthor
 
-    trans <- case m of Just m  -> translateRequest f (fromMaybe "en" t) $ intercalate " " m
+    let f = Nothing --fromShortCodeT <$> f'
+        t = Nothing --fromShortCodeT <$> t'
+
+    trans <- case m of Just m  -> translateRequest f (t <?> English) $ intercalate " " m
                        Nothing -> return $ Left "nothing to translate.."
 
     case trans of Left  t -> reply $ pack t

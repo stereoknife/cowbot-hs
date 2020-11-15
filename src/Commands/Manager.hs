@@ -3,7 +3,7 @@
 
 module Commands.Manager where
 
-import           Bot.Internal        (Command, MessageData, Parser (..), Reply)
+import           Bot.Internal        (Command, Parser (..))
 import           Commands.Bless      (bless)
 import           Commands.Clap       (clap)
 import           Commands.Translate  (translate)
