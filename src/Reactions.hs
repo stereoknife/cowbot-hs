@@ -4,49 +4,21 @@
 
 module Reactions where
 
-{-}
-import           Bot.Internal          (DiscordRequest (..),
-                                        MessageData (askMessage),
-                                        ReactionData (askReaction),
-                                        Reply (embed, reply))
-import           Control.Applicative   (Alternative)
-import           Control.Monad.Reader  (ReaderT, guard, runReaderT)
-import qualified Data.Text             as T
-import           Discord               (DiscordHandler, def, restCall)
-import           Discord.Internal.Rest (Emoji (emojiName),
-                                        ReactionInfo (reactionChannelId, reactionEmoji, reactionMessageId))
-import qualified Discord.Requests      as R
-import           Discord.Types         (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
-                                        CreateEmbedImage (CreateEmbedImageUrl),
-                                        EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
-                                        Message (..),
-                                        User (userAvatar, userId, userName))
 
-type Reaction = ReaderT ReactionInfo DiscordHandler ()
-
-
-runReaction :: ReaderT r m a -> r -> m a
-runReaction = runReaderT
-
-reactionSwitch :: (Reply m, Translate m, MessageData m, ReactionData m, Alternative m, DiscordRequest m) => m ()
-reactionSwitch = do
-    mid <- askReaction reactionMessageId
-    cid <- askReaction reactionChannelId
-    em  <- askReaction $ emojiName . reactionEmoji
-    amt <- dis $ do
-            em <- restCall $ R.GetReactions (cid, mid) em (2, R.BeforeReaction mid)
-            case em of Right m -> return $ m
-                       _       -> return []
-
-    guard (length amt <= 1)
-
-    let is e = T.head e == T.head em
-    if
-        | is "🔣"    -> reactTranslate $ Just English
-        | is "🗺"    -> reactTranslate Nothing
-        | otherwise -> pure ()
-
-    return ()
+import           Bot.Internal     (MessageData (askMessage),
+                                   Reply (embed, reply))
+import           Bot.Internal.Net (Net)
+import           Data.Maybe       (fromMaybe)
+import qualified Data.Text        as T
+import           Discord          (def)
+import           Discord.Types    (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                   CreateEmbedImage (CreateEmbedImageUrl),
+                                   EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                   Message (..),
+                                   User (userAvatar, userId, userName))
+import           Net.Translate    (fromLang, fromText, toLang, toText,
+                                   translateRequest)
+import           Types.Translate  (Lang, randomLang)
 
 {--
 reactConvert :: (Reply m, Translate m, MessageReader m) => m ()
@@ -63,14 +35,18 @@ reactConvert = do
 
 --}
 
-reactTranslate :: (Reply m, Translate m, MessageData m) => Maybe Lang -> m ()
+(<?>) :: Maybe c -> c -> c
+(<?>) = flip fromMaybe
+
+reactTranslate :: (Reply m, Net m, MessageData m) => Maybe Lang -> m ()
 reactTranslate l = do
     mt <- askMessage messageText
     au <- askMessage messageAuthor
+    rl <- randomLang
 
-    trans <- translate Nothing (Target <$> l) mt
+    trans <- translateRequest Nothing (l <?> rl) mt
 
-    case trans of Left  t -> reply t
+    case trans of Left  t -> reply $ T.pack t
                   Right t -> embed $ let fr = EmbedField { embedFieldName = fromLang t
                                                          , embedFieldValue = fromText t
                                                          , embedFieldInline = Just False
@@ -88,8 +64,8 @@ reactTranslate l = do
                                                       <> "/" <> av <> ".png"
 
                                      in def { createEmbedAuthorName = userName au
-                                           , createEmbedFields     = [fr, to]
-                                           , createEmbedAuthorIcon = pic
-                                           }
--}
+                                            , createEmbedFields     = [fr, to]
+                                            , createEmbedAuthorIcon = pic
+                                            }
+
 

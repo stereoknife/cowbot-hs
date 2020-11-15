@@ -23,7 +23,9 @@ import           Discord.Types        (Channel (ChannelText, channelId),
 import           Parser.Parser        (Parser (..), alias, prefix)
 --import           Reactions           (translate)
 import           Bot.Internal.Discord (interpret)
+import           Reactions            (reactTranslate)
 import           Secrets              (token)
+import           Types.Translate      (Lang (English))
 import           UnliftIO             (liftIO)
 import           UnliftIO.Concurrent  (threadDelay)
 
@@ -61,7 +63,7 @@ eventHandler event = case event of
       MessageCreate m ->
         when (not $ fromBot m) $ interpret m messageText commandSwitch
 
-      --MessageReactionAdd r -> interpret r (const "") reactionSwitch
+      MessageReactionAdd r -> interpret r (const "") reactionSwitch
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool
@@ -85,18 +87,19 @@ commandSwitch = do
     where extract (Just x) = pure x
           extract Nothing  = empty
 
-{-}
+
 reactionSwitch :: Reaction ()
 reactionSwitch = do
     mid <- askReaction reactionMessageId
     cid <- askReaction reactionChannelId
     em  <- askReaction $ emojiName . reactionEmoji
     amt <- dis $ do
-            em <- restCall $ R.GetReactions (cid, mid) em (2, R.BeforeReaction mid)
-            case em of Right m -> return $ m
-                       _       -> return []
+           rl <- restCall $ R.GetReactions (cid, mid) em (2, R.BeforeReaction mid)
+           case rl of Right m -> return $ m
+                      _       -> return []
 
     guard (length amt <= 1)
+    dis $ restCall $ R.CreateReaction (cid, mid) em
 
     let is e = T.head e == T.head em
     if
@@ -105,4 +108,3 @@ reactionSwitch = do
         | otherwise -> pure ()
 
     return ()
--}
