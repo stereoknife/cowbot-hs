@@ -1,0 +1,13 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:cowbot"
+
+    - path: "app/Main.hs"
+      component: "cowbot:exe:cowbot-bin"
+
+    - path: "app/Paths_cowbot.hs"
+      component: "cowbot:exe:cowbot-bin"
+
+    - path: "test"
+      component: "cowbot:test:cowbot-test"
