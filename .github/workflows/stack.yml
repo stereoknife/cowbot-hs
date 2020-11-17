@@ -1,4 +1,4 @@
-name: Haskell CI
+name: Haskell Stack CI
 
 on:
   push:
