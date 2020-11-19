@@ -6,11 +6,13 @@
 module Commands.Translate ( translate
                           ) where
 
+
 import           Bot.Internal     (MessageData (..), Parser (parse),
                                    Reply (embed, reply))
 import           Bot.Internal.Net (Net)
 import           Data.Maybe       (fromMaybe)
-import           Data.Text        (intercalate, pack)
+import           Data.Text        (pack)
+import           Data.Text        as T (unwords)
 import           Discord          (def)
 import           Discord.Types    (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
                                    CreateEmbedImage (CreateEmbedImageUrl),
@@ -37,7 +39,7 @@ translate = do
     let f = Nothing --fromShortCodeT <$> f'
         t = Nothing --fromShortCodeT <$> t'
 
-    trans <- case m of Just m  -> translateRequest f (t <?> English) $ intercalate " " m
+    trans <- case m of Just m  -> translateRequest f (t <?> English) $ T.unwords m
                        Nothing -> return $ Left "nothing to translate.."
 
     case trans of Left  t -> reply $ pack t
