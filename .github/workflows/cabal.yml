@@ -33,6 +33,14 @@ jobs:
     - name: Install dependencies
       run: |
         cabal update
-        cabal build --only-dependencies --enable-benchmarks
+        cabal build --only-dependencies --enable-benchmarks  
     - name: Build
       run: cabal build --enable-benchmarks all
+      
+    - name: Install build
+      run: cabal install --install-method=copy --installdir=$HOME
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: cowbot
+        path: $HOME/cowbot-bin
