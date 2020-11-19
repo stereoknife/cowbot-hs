@@ -16,7 +16,7 @@ jobs:
     - uses: actions/setup-haskell@v1
       with:
         ghc-version: '8.10.2'
-        cabal-version: '3.0'
+        cabal-version: '3.2'
 
     - name: Cache
       uses: actions/cache@v1
@@ -38,9 +38,9 @@ jobs:
       run: cabal build --enable-benchmarks all
       
     - name: Install build
-      run: cabal install --install-method=copy --installdir=$HOME
+      run: cabal install --install-method=copy --installdir=/tmp cowbot-bin
     - name: Upload build artifact
       uses: actions/upload-artifact@v2
       with:
         name: cowbot
-        path: $HOME/cowbot-bin
+        path: /tmp/cowbot-bin
