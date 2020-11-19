@@ -38,9 +38,9 @@ jobs:
       run: cabal build --enable-benchmarks all
       
     - name: Install build
-      run: cabal install --install-method=copy --installdir=$HOME
+      run: cabal install --install-method=copy --installdir=/tmp cowbot-bin
     - name: Upload build artifact
       uses: actions/upload-artifact@v2
       with:
         name: cowbot
-        path: $HOME/cowbot-bin
+        path: /tmp/cowbot-bin
