@@ -95,13 +95,14 @@ reactionSwitch = do
     em  <- askReaction $ emojiName . reactionEmoji
     amt <- dis $ do
            rl <- restCall $ R.GetReactions (cid, mid) em (2, R.BeforeReaction mid)
-           case rl of Right m -> return $ m
+           case rl of Right m -> return m
                       _       -> return []
 
-    guard (length amt <= 1)
-    dis $ restCall $ R.CreateReaction (cid, mid) em
-
     let is e = T.head e == T.head em
+    guard (length amt <= 1)
+    guard (is "🔣" || is "🗺")
+
+    dis $ restCall $ R.CreateReaction (cid, mid) em
     if
         | is "🔣"    -> reactTranslate $ Just English
         | is "🗺"    -> reactTranslate Nothing
