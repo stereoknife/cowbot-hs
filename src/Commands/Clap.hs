@@ -1,17 +1,26 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Commands.Clap where
+module Commands.Clap (clap) where
 
-import           Bot.Internal  (Parser, Reply, parse, reply)
-import           Data.Maybe    (fromMaybe)
-import           Data.Text     (intercalate)
-import           Parser.Parser (arg, args, flag)
+import           Control.Applicative.Combinators (many)
+import           Data.Maybe                      (fromMaybe)
+import           Data.Parse                      (Parse (..))
+import           Data.Text.Lazy                  (intercalate)
+import           Data.Text.Lazy.Builder          (toLazyText)
+import           Network.Discord                 (Reply, reply)
+import           Parser.Constructors             (word)
+import           UnliftIO                        (MonadIO (liftIO))
 
-clap :: (Reply m, Parser m) => m ()
+-- temp suppress errors
+-- clap = undefined
+-- --------------------
+
+clap :: (MonadIO m, Reply m, Parse m) => m ()
 clap = do
   --e <- parse $ (flag "e") >> arg
-  ar <- parse args
+  ar <- parse $ many word
+  liftIO $ print ar
   let inr = fromMaybe "👏" Nothing
   reply $ intercalate inr (fromMaybe [""] ar) <> inr
 

@@ -1,34 +1,24 @@
-{-# LANGUAGE MultiWayIf #-}
 module Bot (runBot) where
 
-import           Bot.Internal
 import           Commands
-import           Control.Applicative  (Alternative (empty))
-import           Control.Monad        (forM_, guard, when)
-import           Data.Text            (pack)
-import qualified Data.Text            as T
-import qualified Data.Text.IO         as TIO
-import           Discord              (DiscordHandler,
-                                       RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
-                                       def, restCall, runDiscord)
-import qualified Discord.Requests     as R
-import           Discord.Types        (Channel (ChannelText, channelId),
-                                       Event (MessageCreate, MessageReactionAdd),
-                                       Guild (guildId),
-                                       Message (messageAuthor, messageText),
-                                       PartialGuild (partialGuildId),
-                                       User (userIsBot), emojiName,
-                                       reactionChannelId, reactionEmoji,
-                                       reactionMessageId)
-import           Parser.Parser        (Parser (..), alias, prefix)
---import           Reactions           (translate)
-import           Bot.Internal.Discord (interpret)
-import           Reactions            (reactTranslate)
-import           Secrets              (token)
-import           Types.Translate      (Lang (English))
-import           UnliftIO             (liftIO)
-import           UnliftIO.Concurrent  (threadDelay)
-
+import           Control.Monad       (forM_, unless)
+import           Data.Bot            (command, interpret)
+import qualified Data.Text.IO        as TIO
+import           Data.Text.Lazy      (fromStrict)
+import           Discord             (DiscordHandler,
+                                      RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
+                                      def, restCall, runDiscord)
+import qualified Discord.Requests    as R
+import           Discord.Types       (Channel (ChannelText, channelId),
+                                      Event (MessageCreate), Guild (guildId),
+                                      Message (messageAuthor, messageText),
+                                      PartialGuild (partialGuildId),
+                                      User (userIsBot))
+import           Parser              (Parser (runParser))
+import           Parser.Constructors (string, word, ws)
+import           Secrets             (token)
+import           UnliftIO            (MonadIO (liftIO))
+import           UnliftIO.Concurrent (threadDelay)
 
 runBot :: IO ()
 runBot = do
@@ -61,33 +51,32 @@ startHandler = do
 eventHandler :: Event -> DiscordHandler ()
 eventHandler event = case event of
       MessageCreate m ->
-        when (not $ fromBot m) $ interpret m messageText commandSwitch
+        unless (fromBot m) $ do
+          let mt = fromStrict $ messageText m
+              ps = runParser (ws $ string "🤠" >> word) mt
+          interpret (maybe "" fst ps) (m, maybe "" snd ps) $ do
+            command "bless" bless
+            command "t" $ translate $ maybe "" snd ps
+            command "clap" clap
+            command "yt" yt
 
-      MessageReactionAdd r -> interpret r (const "") reactionSwitch
+      --MessageReactionAdd r -> interpret r (const "") reactionSwitch
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool
-isTextChannel (ChannelText {}) = True
-isTextChannel _                = False
+isTextChannel ChannelText {} = True
+isTextChannel _              = False
 
 fromBot :: Message -> Bool
 fromBot = userIsBot . messageAuthor
 
-commandSwitch :: Command ()
-commandSwitch = do
-    parse prefix >>= extract
-    a <- parse alias  >>= extract
-    if
-        | a == "clap"  -> clap
-        | a == "bless" -> bless
-        | a == "t"     -> translate
-        | a == "yt"    -> yt
-        | otherwise    -> return ()
 
-    where extract (Just x) = pure x
-          extract Nothing  = empty
+-- Handler :: Command -> Handler
+-- (:&) Command -> Command -> Handler
 
+-- Command ["alias"]
 
+{-}
 reactionSwitch :: Reaction ()
 reactionSwitch = do
     mid <- askReaction reactionMessageId
@@ -109,3 +98,4 @@ reactionSwitch = do
         | otherwise -> pure ()
 
     return ()
+-}

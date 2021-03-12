@@ -1,67 +1,60 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-
+{-# LANGUAGE TypeApplications #-}
 module Commands.Translate ( translate
                           ) where
 
 
-import           Bot.Internal     (MessageData (..), Parser (parse),
-                                   Reply (embed, reply))
-import           Bot.Internal.Net (Net)
-import           Data.Maybe       (fromMaybe)
-import           Data.Text        (pack)
-import           Data.Text        as T (unwords)
-import           Discord          (def)
-import           Discord.Types    (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
-                                   CreateEmbedImage (CreateEmbedImageUrl),
-                                   EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
-                                   Message (messageAuthor),
-                                   User (userAvatar, userId, userName))
-import           Net.Translate    (Translate, TranslationResponse (..),
-                                   translateRequest)
-import           Parser.Parser    (arg, args, flag)
-import           Types.Translate  (Lang (English), fromShortCodeT)
+import           Control.Monad        (guard)
+import           Control.Monad.Reader (MonadIO (liftIO), asks)
+import           Data.Bot             (Command)
+import           Data.Discord         (Exposes (asksExposed))
+import           Data.Language        (Lang (English))
+import           Data.Text            (pack)
+import qualified Data.Text.Lazy       as T (Text, null, toStrict)
+import           Data.Translation     (LocalizedText (Auto), locText,
+                                       locTextArray, whatLang)
+import qualified Data.Translation     as T (translate)
+import           Discord              (def)
+import           Discord.Types        (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                       CreateEmbedImage (CreateEmbedImageUrl),
+                                       EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                       Message (messageAuthor),
+                                       User (userAvatar, userId, userName))
+import           Network.Discord      (embed)
 
+translate :: T.Text -> Command ()
+translate m = do
+    guard $ not $ T.null m
 
-(<?>) :: Maybe c -> c -> c
-(<?>) = flip fromMaybe
+    let tx = Auto m
+    tr <- T.translate tx English
+    a <- asksExposed @Message messageAuthor
 
-translate :: (Reply m, Translate m, MessageData m, Parser m, Net m) => m ()
-translate = do
-    --f' <- parse (flag "from" >> arg)
-    --t' <- parse (flag "to" >> arg)
+    let trr = take 2 $ locTextArray tr
 
-    m <- parse args
-    a <- askMessage messageAuthor
+    liftIO $ print "translating"
+    liftIO $ print $ show tr
+    liftIO $ print "translated"
 
-    let f = Nothing --fromShortCodeT <$> f'
-        t = Nothing --fromShortCodeT <$> t'
+    embed $ let fr = EmbedField { embedFieldName = pack $ show $ whatLang $ head trr
+                                , embedFieldValue = T.toStrict $ locText $ head trr
+                                , embedFieldInline = Just False
+                                }
 
-    trans <- case m of Just m  -> translateRequest f (t <?> English) $ T.unwords m
-                       Nothing -> return $ Left "nothing to translate.."
+                to = EmbedField { embedFieldName = pack $ show $ whatLang $ last trr
+                                , embedFieldValue = T.toStrict $ locText $ last trr
+                                , embedFieldInline = Just False
+                                }
 
-    case trans of Left  t -> reply $ pack t
-                  Right t -> embed $ let fr = EmbedField { embedFieldName = fromLang t
-                                                         , embedFieldValue = fromText t
-                                                         , embedFieldInline = Just False
-                                                         }
+                pic = do
+                        av <- userAvatar a
+                        pure $ CreateEmbedImageUrl $
+                            "https://cdn.discordapp.com/avatars/"
+                            <> (pack . show $ userId a)
+                            <> "/" <> av <> ".png"
 
-                                         to = EmbedField { embedFieldName = toLang t
-                                                         , embedFieldValue = toText t
-                                                         , embedFieldInline = Just False
-                                                         }
-
-                                         pic = do av <- userAvatar a
-                                                  pure $ CreateEmbedImageUrl $
-                                                      "https://cdn.discordapp.com/avatars/"
-                                                      <> (pack . show $ userId a)
-                                                      <> "/" <> av <> ".png"
-
-                                     in def { createEmbedAuthorName = userName a
-                                           , createEmbedFields     = [fr, to]
-                                           , createEmbedAuthorIcon = pic
-                                           }
+                in def { createEmbedAuthorName = userName a
+                        , createEmbedFields     = [fr, to]
+                        , createEmbedAuthorIcon = pic
+                        }
 
     return ()

@@ -3,14 +3,8 @@
 
 module Commands.Manager where
 
-import           Bot.Internal        (Command, Parser (..))
-import           Commands.Bless      (bless)
-import           Commands.Clap       (clap)
-import           Commands.Translate  (translate)
-import           Commands.Youtube    (yt)
-import           Control.Applicative (Alternative (empty))
-import           Parser.Parser       (alias, prefix)
 
+{-}
 commandSwitch :: Command ()
 commandSwitch = do
     parse prefix >>= extract
@@ -24,3 +18,4 @@ commandSwitch = do
 
     where extract (Just x) = pure x
           extract Nothing  = empty
+-}
