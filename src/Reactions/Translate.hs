@@ -1,12 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
-module Commands.Translate ( translate
+module Reactions.Translate ( translate
                           ) where
 
 
 import           Control.Applicative  (Alternative)
 import           Control.Monad        (guard)
-import           Control.Monad.Reader (MonadIO (liftIO))
+import           Control.Monad.Catch  (MonadThrow)
+import           Control.Monad.Reader (MonadIO (liftIO), asks)
+import           Data.Bot             (Command, Reaction)
 import           Data.Discord         (Exposes (asksExposed))
 import           Data.Language        (Lang (English))
 import           Data.Network         (Network)
@@ -23,12 +25,12 @@ import           Discord.Types        (CreateEmbed (createEmbedAuthorIcon, creat
                                        User (userAvatar, userId, userName))
 import           Network.Discord      (Reply, embed)
 
-translate :: (Network m, Alternative m, Reply m, Exposes Message m) => Lang -> T.Text -> m ()
-translate l m = do
+translate :: (Network m, Alternative m, Reply m, Exposes Message m) => T.Text -> m ()
+translate m = do
     guard $ not $ T.null m
 
     let tx = Auto m
-    tr <- T.translate tx l
+    tr <- T.translate tx English
     a <- asksExposed @Message messageAuthor
 
     let trr = take 2 $ locTextArray tr
@@ -37,13 +39,13 @@ translate l m = do
     liftIO $ print $ show tr
     liftIO $ print "translated"
 
-    embed $ let fr = EmbedField { embedFieldName = pack $ show $ whatLang $ last trr
-                                , embedFieldValue = T.toStrict $ locText $ last trr
+    embed $ let fr = EmbedField { embedFieldName = pack $ show $ whatLang $ head trr
+                                , embedFieldValue = T.toStrict $ locText $ head trr
                                 , embedFieldInline = Just False
                                 }
 
-                to = EmbedField { embedFieldName = pack $ show $ whatLang $ head trr
-                                , embedFieldValue = T.toStrict $ locText $ headf trr
+                to = EmbedField { embedFieldName = pack $ show $ whatLang $ last trr
+                                , embedFieldValue = T.toStrict $ locText $ last trr
                                 , embedFieldInline = Just False
                                 }
 

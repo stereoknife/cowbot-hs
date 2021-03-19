@@ -16,31 +16,28 @@ module Data.Translation ( LocalizedText (..)
                         , locTextArray
                         ) where
 
-import           Control.Applicative     (Alternative ((<|>)))
-import           Control.Monad           (guard, when)
-import           Control.Monad.Catch     (MonadThrow)
-import           Control.Monad.IO.Class  (MonadIO, liftIO)
-import           Data.Aeson              (FromJSON (parseJSON), ToJSON,
-                                          withObject, (.:), (.:?))
-import           Data.Language           (Lang, toShortCodeT)
-import           Data.Maybe              (fromJust, isNothing)
-import qualified Data.Text               as T (Text)
-import           Data.Text.Encoding      (encodeUtf8)
-import           Data.Text.Lazy          (Text)
-import           Data.Text.Lazy.Builder  (toLazyText)
-import           GHC.Generics            (Generic)
-import           GHC.TypeNats            (KnownNat, Nat, type (+))
-import           HTMLEntities.Decoder    (htmlEncodedText)
-import           Network.HTTP.Client.TLS (newTlsManager)
-import           Network.HTTP.Simple     (defaultRequest, getResponseBody,
-                                          httpJSON, parseRequest,
-                                          setRequestBodyJSON, setRequestHeader,
-                                          setRequestHost,
-                                          setRequestIgnoreStatus,
-                                          setRequestMethod, setRequestPath,
-                                          setRequestQueryString)
-import           Network.HTTP.Types      (hContentType)
-import           Secrets                 (tr_key)
+import           Control.Applicative    (Alternative ((<|>)))
+import           Control.Monad          (when)
+import           Control.Monad.Catch    (MonadThrow)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Aeson             (FromJSON (parseJSON), ToJSON,
+                                         withObject, (.:), (.:?))
+import           Data.Language          (Lang, toShortCodeT)
+import           Data.Maybe             (fromJust, isNothing)
+import qualified Data.Text              as T (Text)
+import           Data.Text.Encoding     (encodeUtf8)
+import           Data.Text.Lazy         (Text)
+import           Data.Text.Lazy.Builder (toLazyText)
+import           GHC.Generics           (Generic)
+import           HTMLEntities.Decoder   (htmlEncodedText)
+import           Network.HTTP.Simple    (getResponseBody, httpJSON,
+                                         parseRequest, setRequestBodyJSON,
+                                         setRequestHeader,
+                                         setRequestIgnoreStatus,
+                                         setRequestMethod, setRequestPath,
+                                         setRequestQueryString)
+import           Network.HTTP.Types     (hContentType)
+import           Secrets                (tr_key)
 
 data KL = KAuto | KLang
 

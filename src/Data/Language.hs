@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Data.Language ( Lang (..)
                      , toShortCode
                      , toShortCodeT
@@ -8,6 +9,7 @@ module Data.Language ( Lang (..)
 import           Data.Aeson          (FromJSON (..), ToJSON (..),
                                       Value (String), withText)
 import           Data.Aeson.Encoding (string)
+import           Data.Data           (Data, Typeable)
 import qualified Data.Text           as T (pack, unpack)
 import qualified Data.Text.Lazy      as L (Text, pack, unpack)
 
@@ -103,7 +105,7 @@ data Lang = Afrikaans
           | Yiddish
           | Yoruba
           | Zulu
-          deriving (Show, Eq, Ord, Enum)
+          deriving (Show, Eq, Ord, Enum, Typeable, Data)
 
 instance FromJSON Lang where
   parseJSON = withText "Lang" $ \t -> case fromShortCode $ T.unpack t of Just t' -> pure t'

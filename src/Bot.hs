@@ -2,7 +2,11 @@ module Bot (runBot) where
 
 import           Commands
 import           Control.Monad       (forM_, unless)
-import           Data.Bot            (command, interpret)
+import           Data.Bot            (command, interpret, reaction)
+import           Data.Data           (Data (dataTypeOf))
+import           Data.Data.Random    (randomValue)
+import           Data.Discord        (Exposes (asksExposed))
+import           Data.Language       (Lang (English))
 import qualified Data.Text.IO        as TIO
 import           Data.Text.Lazy      (fromStrict)
 import           Discord             (DiscordHandler,
@@ -10,10 +14,12 @@ import           Discord             (DiscordHandler,
                                       def, restCall, runDiscord)
 import qualified Discord.Requests    as R
 import           Discord.Types       (Channel (ChannelText, channelId),
-                                      Event (MessageCreate), Guild (guildId),
+                                      Event (MessageCreate, MessageReactionAdd),
+                                      Guild (guildId),
                                       Message (messageAuthor, messageText),
                                       PartialGuild (partialGuildId),
-                                      User (userIsBot))
+                                      User (userIsBot), emojiName,
+                                      reactionEmoji)
 import           Parser              (Parser (runParser))
 import           Parser.Constructors (string, word, ws)
 import           Secrets             (token)
@@ -56,11 +62,16 @@ eventHandler event = case event of
               ps = runParser (ws $ string "🤠" >> word) mt
           interpret (maybe "" fst ps) (m, maybe "" snd ps) $ do
             command "bless" bless
-            command "t" $ translate $ maybe "" snd ps
+            command "t" $ translate English $ maybe "" snd ps
             command "clap" clap
             command "yt" yt
 
-      --MessageReactionAdd r -> interpret r (const "") reactionSwitch
+      MessageReactionAdd r -> interpret (fromStrict $ emojiName $ reactionEmoji r) r $ do
+          reaction "🔣" $ translate English =<< asksExposed (fromStrict . messageText)
+          reaction "🗺️" $ do
+            l <- liftIO $ randomValue $ dataTypeOf English
+            t <- asksExposed (fromStrict . messageText)
+            translate l t
       _ -> pure ()
 
 isTextChannel :: Channel -> Bool

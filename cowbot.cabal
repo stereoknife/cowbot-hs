@@ -66,10 +66,11 @@ library
       Data.CLI
       Data.Discord
       Data.Language
+      Data.Network
       Data.Parse
       Data.Translation
+      Data.Data.Random
       Network.Discord
-      Network.Request
       Parser
       Parser.Constructors
       Parser.Types
