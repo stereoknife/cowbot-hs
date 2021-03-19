@@ -43,7 +43,7 @@ translate l m = do
                                 }
 
                 to = EmbedField { embedFieldName = pack $ show $ whatLang $ head trr
-                                , embedFieldValue = T.toStrict $ locText $ headf trr
+                                , embedFieldValue = T.toStrict $ locText $ head trr
                                 , embedFieldInline = Just False
                                 }
 
