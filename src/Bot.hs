@@ -9,6 +9,7 @@ import           Data.Discord        (Exposes (asksExposed))
 import           Data.Language       (Lang (English))
 import qualified Data.Text.IO        as TIO
 import           Data.Text.Lazy      (fromStrict)
+import qualified Database.Redis      as DB
 import           Discord             (DiscordHandler,
                                       RunDiscordOpts (discordOnEnd, discordOnEvent, discordOnLog, discordOnStart, discordToken),
                                       def, restCall, runDiscord)
@@ -22,7 +23,7 @@ import           Discord.Types       (Channel (ChannelText, channelId),
                                       reactionEmoji)
 import           Parser              (Parser (runParser))
 import           Parser.Constructors (string, word, ws)
-import           Secrets             (token)
+import           Secrets             (botAdmins, token)
 import           UnliftIO            (MonadIO (liftIO))
 import           UnliftIO.Concurrent (threadDelay)
 
@@ -44,6 +45,7 @@ runBot = do
 startHandler :: DiscordHandler ()
 startHandler = do
   Right partialGuilds <- restCall R.GetCurrentUserGuilds
+  admins <- liftIO botAdmins
 
   forM_ partialGuilds $ \pg -> do
     Right guild <- restCall $ R.GetGuild (partialGuildId pg)
@@ -61,6 +63,7 @@ eventHandler event = case event of
           let mt = fromStrict $ messageText m
               ps = runParser (ws $ string "🤠" >> word) mt
           interpret (maybe "" fst ps) (m, maybe "" snd ps) $ do
+            command "about" about
             command "bless" bless
             command "t" $ translate English $ maybe "" snd ps
             command "clap" clap

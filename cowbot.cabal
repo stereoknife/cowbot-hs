@@ -33,6 +33,7 @@ common deps
     , discord-haskell >= 1.8.0 && < 1.9
     , emoji
     , first-class-families >= 0.8 && < 0.9
+    , hedis >= 0.14 && < 0.15
     , html-entities
     , HTTP >= 4000.3 && < 4000.4
     , http-client == 0.7.2.1
@@ -56,10 +57,10 @@ library
   exposed-modules:
       Bot
       Commands
+      Commands.About
       Commands.Bless
       Commands.Clap
       Commands.Help
-      Commands.Manager
       Commands.Translate
       Commands.Youtube
       Data.Bot

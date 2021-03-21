@@ -91,7 +91,12 @@ reaction a d = MkReaction a d (Done ())
 type Identifier = Text
 interpret :: Identifier -> r -> Action r a -> DiscordHandler ()
 interpret _ _ (Done _)             = pure ()
-interpret s r (MkCommand s' dh next) = if s == s' then evalStateT dh r else interpret s r next
+
+interpret s r (MkCommand s' dh next) =
+    if s == s'
+    then evalStateT dh r
+    else interpret s r next
+
 interpret s r (MkReaction s' dh next) =
     if s /= s'
     then interpret s r next
@@ -106,3 +111,7 @@ interpret s r (MkReaction s' dh next) =
             dis $ restCall $ R.CreateReaction (ch, id) st
             dh
 
+help :: Action a b -> Text
+help (MkCommand n _ a)  = n <> "\n" <> help a
+help (MkReaction e _ a) = help a
+help (Done _)           = undefined
