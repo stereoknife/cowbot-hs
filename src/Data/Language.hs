@@ -1,21 +1,25 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE GADTs              #-}
 module Data.Language ( Lang (..)
                      , toShortCode
                      , toShortCodeT
                      , fromShortCode
                      , fromShortCodeT
+                     , langName
                      ) where
 
 import           Data.Aeson          (FromJSON (..), ToJSON (..),
                                       Value (String), withText)
 import           Data.Aeson.Encoding (string)
-import           Data.Data           (Data, Typeable)
-import qualified Data.Text           as T (pack, unpack)
+import           Data.Data           (Data, Proxy, Typeable)
+import qualified Data.Text           as T (Text, pack, unpack)
 import qualified Data.Text.Lazy      as L (Text, pack, unpack)
 
 -- Lang definition
 data Lang = Afrikaans
           | Albanian
+          | Amharic
           | Arabic
           | Armenian
           | Azerbaijani
@@ -26,9 +30,9 @@ data Lang = Afrikaans
           | Bulgarian
           | Catalan
           | Cebuano
-          | Chichewa
           | ChineseSimplified
           | ChineseTraditional
+          | Corsican
           | Croatian
           | Czech
           | Danish
@@ -36,9 +40,9 @@ data Lang = Afrikaans
           | English
           | Esperanto
           | Estonian
-          | Filipino
           | Finnish
           | French
+          | Frisian
           | Galician
           | Georgian
           | German
@@ -46,6 +50,7 @@ data Lang = Afrikaans
           | Gujarati
           | HaitianCreole
           | Hausa
+          | Hawaiian
           | Hebrew
           | Hindi
           | Hmong
@@ -60,11 +65,15 @@ data Lang = Afrikaans
           | Kannada
           | Kazakh
           | Khmer
+          | Kinyarwanda
           | Korean
+          | Kurdish
+          | Kyrgyz
           | Lao
           | Latin
           | Latvian
           | Lithuanian
+          | Luxembourgish
           | Macedonian
           | Malagasy
           | Malay
@@ -76,14 +85,21 @@ data Lang = Afrikaans
           | MyanmarBurmese
           | Nepali
           | Norwegian
+          | NyanjaChichewa
+          | OdiaOriya
+          | Pashto
           | Persian
           | Polish
           | Portuguese
           | Punjabi
           | Romanian
           | Russian
+          | Samoan
+          | ScotsGaelic
           | Serbian
           | Sesotho
+          | Shona
+          | Sindhi
           | Sinhala
           | Slovak
           | Slovenian
@@ -92,16 +108,21 @@ data Lang = Afrikaans
           | Sundanese
           | Swahili
           | Swedish
+          | Tagalog
           | Tajik
           | Tamil
+          | Tatar
           | Telugu
           | Thai
           | Turkish
+          | Turkmen
           | Ukrainian
           | Urdu
+          | Uyghur
           | Uzbek
           | Vietnamese
           | Welsh
+          | Xhosa
           | Yiddish
           | Yoruba
           | Zulu
@@ -118,6 +139,7 @@ instance ToJSON Lang where
 toShortCode :: Lang -> String
 toShortCode Afrikaans          = "af"
 toShortCode Albanian           = "sq"
+toShortCode Amharic            = "am"
 toShortCode Arabic             = "ar"
 toShortCode Armenian           = "hy"
 toShortCode Azerbaijani        = "az"
@@ -128,9 +150,9 @@ toShortCode Bosnian            = "bs"
 toShortCode Bulgarian          = "bg"
 toShortCode Catalan            = "ca"
 toShortCode Cebuano            = "ceb"
-toShortCode Chichewa           = "ny"
 toShortCode ChineseSimplified  = "zh"
 toShortCode ChineseTraditional = "zh-TW"
+toShortCode Corsican           = "co"
 toShortCode Croatian           = "hr"
 toShortCode Czech              = "cs"
 toShortCode Danish             = "da"
@@ -138,9 +160,9 @@ toShortCode Dutch              = "nl"
 toShortCode English            = "en"
 toShortCode Esperanto          = "eo"
 toShortCode Estonian           = "et"
-toShortCode Filipino           = "tl"
 toShortCode Finnish            = "fi"
 toShortCode French             = "fr"
+toShortCode Frisian            = "fy"
 toShortCode Galician           = "gl"
 toShortCode Georgian           = "ka"
 toShortCode German             = "de"
@@ -148,6 +170,7 @@ toShortCode Greek              = "el"
 toShortCode Gujarati           = "gu"
 toShortCode HaitianCreole      = "ht"
 toShortCode Hausa              = "ha"
+toShortCode Hawaiian           = "haw"
 toShortCode Hebrew             = "iw"
 toShortCode Hindi              = "hi"
 toShortCode Hmong              = "hmn"
@@ -162,11 +185,15 @@ toShortCode Javanese           = "jw"
 toShortCode Kannada            = "kn"
 toShortCode Kazakh             = "kk"
 toShortCode Khmer              = "km"
+toShortCode Kinyarwanda        = "rw"
 toShortCode Korean             = "ko"
+toShortCode Kurdish            = "ku"
+toShortCode Kyrgyz             = "ky"
 toShortCode Lao                = "lo"
 toShortCode Latin              = "la"
 toShortCode Latvian            = "lv"
 toShortCode Lithuanian         = "lt"
+toShortCode Luxembourgish      = "lb"
 toShortCode Macedonian         = "mk"
 toShortCode Malagasy           = "mg"
 toShortCode Malay              = "ms"
@@ -178,14 +205,21 @@ toShortCode Mongolian          = "mn"
 toShortCode MyanmarBurmese     = "my"
 toShortCode Nepali             = "ne"
 toShortCode Norwegian          = "no"
+toShortCode NyanjaChichewa     = "ny"
+toShortCode OdiaOriya          = "or"
+toShortCode Pashto             = "ps"
 toShortCode Persian            = "fa"
 toShortCode Polish             = "pl"
 toShortCode Portuguese         = "pt"
 toShortCode Punjabi            = "pa"
 toShortCode Romanian           = "ro"
 toShortCode Russian            = "ru"
+toShortCode Samoan             = "sm"
+toShortCode ScotsGaelic        = "gd"
 toShortCode Serbian            = "sr"
 toShortCode Sesotho            = "st"
+toShortCode Shona              = "sn"
+toShortCode Sindhi             = "sd"
 toShortCode Sinhala            = "si"
 toShortCode Slovak             = "sk"
 toShortCode Slovenian          = "sl"
@@ -194,16 +228,21 @@ toShortCode Spanish            = "es"
 toShortCode Sundanese          = "su"
 toShortCode Swahili            = "sw"
 toShortCode Swedish            = "sv"
+toShortCode Tagalog            = "tl"
 toShortCode Tajik              = "tg"
 toShortCode Tamil              = "ta"
+toShortCode Tatar              = "tt"
 toShortCode Telugu             = "te"
 toShortCode Thai               = "th"
 toShortCode Turkish            = "tr"
+toShortCode Turkmen            = "tk"
 toShortCode Ukrainian          = "uk"
 toShortCode Urdu               = "ur"
+toShortCode Uyghur             = "ug"
 toShortCode Uzbek              = "uz"
 toShortCode Vietnamese         = "vi"
 toShortCode Welsh              = "cy"
+toShortCode Xhosa              = "xh"
 toShortCode Yiddish            = "yi"
 toShortCode Yoruba             = "yo"
 toShortCode Zulu               = "zu"
@@ -214,6 +253,7 @@ toShortCodeT = L.pack . toShortCode
 fromShortCode :: String -> Maybe Lang
 fromShortCode "af"    = Just Afrikaans
 fromShortCode "sq"    = Just Albanian
+fromShortCode "am"    = Just Amharic
 fromShortCode "ar"    = Just Arabic
 fromShortCode "hy"    = Just Armenian
 fromShortCode "az"    = Just Azerbaijani
@@ -224,19 +264,19 @@ fromShortCode "bs"    = Just Bosnian
 fromShortCode "bg"    = Just Bulgarian
 fromShortCode "ca"    = Just Catalan
 fromShortCode "ceb"   = Just Cebuano
-fromShortCode "ny"    = Just Chichewa
 fromShortCode "zh"    = Just ChineseSimplified
 fromShortCode "zh-TW" = Just ChineseTraditional
 fromShortCode "hr"    = Just Croatian
+fromShortCode "co"    = Just Corsican
 fromShortCode "cs"    = Just Czech
 fromShortCode "da"    = Just Danish
 fromShortCode "nl"    = Just Dutch
 fromShortCode "en"    = Just English
 fromShortCode "eo"    = Just Esperanto
 fromShortCode "et"    = Just Estonian
-fromShortCode "tl"    = Just Filipino
 fromShortCode "fi"    = Just Finnish
 fromShortCode "fr"    = Just French
+fromShortCode "fy"    = Just Frisian
 fromShortCode "gl"    = Just Galician
 fromShortCode "ka"    = Just Georgian
 fromShortCode "de"    = Just German
@@ -244,6 +284,7 @@ fromShortCode "el"    = Just Greek
 fromShortCode "gu"    = Just Gujarati
 fromShortCode "ht"    = Just HaitianCreole
 fromShortCode "ha"    = Just Hausa
+fromShortCode "haw"   = Just Hawaiian
 fromShortCode "iw"    = Just Hebrew
 fromShortCode "hi"    = Just Hindi
 fromShortCode "hmn"   = Just Hmong
@@ -258,11 +299,15 @@ fromShortCode "jw"    = Just Javanese
 fromShortCode "kn"    = Just Kannada
 fromShortCode "kk"    = Just Kazakh
 fromShortCode "km"    = Just Khmer
+fromShortCode "rw"    = Just Kinyarwanda
 fromShortCode "ko"    = Just Korean
+fromShortCode "ku"    = Just Kurdish
+fromShortCode "ky"    = Just Kyrgyz
 fromShortCode "lo"    = Just Lao
 fromShortCode "la"    = Just Latin
 fromShortCode "lv"    = Just Latvian
 fromShortCode "lt"    = Just Lithuanian
+fromShortCode "lb"    = Just Luxembourgish
 fromShortCode "mk"    = Just Macedonian
 fromShortCode "mg"    = Just Malagasy
 fromShortCode "ms"    = Just Malay
@@ -274,14 +319,21 @@ fromShortCode "mn"    = Just Mongolian
 fromShortCode "my"    = Just MyanmarBurmese
 fromShortCode "ne"    = Just Nepali
 fromShortCode "no"    = Just Norwegian
+fromShortCode "ny"    = Just NyanjaChichewa
+fromShortCode "or"    = Just OdiaOriya
+fromShortCode "ps"    = Just Pashto
 fromShortCode "fa"    = Just Persian
 fromShortCode "pl"    = Just Polish
 fromShortCode "pt"    = Just Portuguese
 fromShortCode "pa"    = Just Punjabi
 fromShortCode "ro"    = Just Romanian
 fromShortCode "ru"    = Just Russian
+fromShortCode "sm"    = Just Samoan
+fromShortCode "gd"    = Just ScotsGaelic
 fromShortCode "sr"    = Just Serbian
 fromShortCode "st"    = Just Sesotho
+fromShortCode "sn"    = Just Shona
+fromShortCode "sd"    = Just Sindhi
 fromShortCode "si"    = Just Sinhala
 fromShortCode "sk"    = Just Slovak
 fromShortCode "sl"    = Just Slovenian
@@ -290,16 +342,21 @@ fromShortCode "es"    = Just Spanish
 fromShortCode "su"    = Just Sundanese
 fromShortCode "sw"    = Just Swahili
 fromShortCode "sv"    = Just Swedish
+fromShortCode "tl"    = Just Tagalog
 fromShortCode "tg"    = Just Tajik
 fromShortCode "ta"    = Just Tamil
+fromShortCode "tt"    = Just Tatar
 fromShortCode "te"    = Just Telugu
 fromShortCode "th"    = Just Thai
 fromShortCode "tr"    = Just Turkish
+fromShortCode "tk"    = Just Turkmen
 fromShortCode "uk"    = Just Ukrainian
 fromShortCode "ur"    = Just Urdu
+fromShortCode "ug"    = Just Uyghur
 fromShortCode "uz"    = Just Uzbek
 fromShortCode "vi"    = Just Vietnamese
 fromShortCode "cy"    = Just Welsh
+fromShortCode "xh"    = Just Xhosa
 fromShortCode "yi"    = Just Yiddish
 fromShortCode "yo"    = Just Yoruba
 fromShortCode "zu"    = Just Zulu
@@ -307,3 +364,13 @@ fromShortCode _       = Nothing
 
 fromShortCodeT :: L.Text -> Maybe Lang
 fromShortCodeT = fromShortCode . L.unpack
+
+langName :: Lang -> T.Text
+langName ChineseSimplified  = "Chinese (Simplified)"
+langName ChineseTraditional = "Chinese (Traditional)"
+langName HaitianCreole      = "Haitian Creole"
+langName MyanmarBurmese     = "Myanmar (Burmese)"
+langName NyanjaChichewa     = "Nyanja (Chichewa)"
+langName OdiaOriya          = "Odia (Oriya)"
+langName Spanish            = "Castilian (Spanish)"
+langName t                  = T.pack $ show t

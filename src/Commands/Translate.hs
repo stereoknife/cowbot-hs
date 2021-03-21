@@ -8,7 +8,7 @@ import           Control.Applicative  (Alternative)
 import           Control.Monad        (guard)
 import           Control.Monad.Reader (MonadIO (liftIO))
 import           Data.Discord         (Exposes (asksExposed))
-import           Data.Language        (Lang (English))
+import           Data.Language        (Lang (English), langName)
 import           Data.Network         (Network)
 import           Data.Text            (pack)
 import qualified Data.Text.Lazy       as T (Text, null, toStrict)
@@ -37,12 +37,12 @@ translate l m = do
     liftIO $ print $ show tr
     liftIO $ print "translated"
 
-    embed $ let fr = EmbedField { embedFieldName = pack $ show $ whatLang $ last trr
+    embed $ let fr = EmbedField { embedFieldName = langName $ whatLang $ last trr
                                 , embedFieldValue = T.toStrict $ locText $ last trr
                                 , embedFieldInline = Just False
                                 }
 
-                to = EmbedField { embedFieldName = pack $ show $ whatLang $ head trr
+                to = EmbedField { embedFieldName = langName $ whatLang $ head trr
                                 , embedFieldValue = T.toStrict $ locText $ head trr
                                 , embedFieldInline = Just False
                                 }
