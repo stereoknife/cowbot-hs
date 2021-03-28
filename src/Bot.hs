@@ -1,6 +1,7 @@
 module Bot (runBot) where
 
 import           Commands            (about, bless, clap, translate, uwu, yt)
+import           Commands.Uwu        (uwuR)
 import           Control.Monad       (forM_, unless)
 import           Data.Bot            (command, interpret, reaction)
 import           Data.Data           (Data (dataTypeOf))
@@ -66,6 +67,7 @@ eventHandler event = case event of
             command "uwu" uwu
 
       MessageReactionAdd r -> interpret (fromStrict $ emojiName $ reactionEmoji r) r $ do
+          reaction "♋" uwuR
           reaction "🔣" $ translate English =<< asksExposed (fromStrict . messageText)
           reaction "🗺️" $ do
             l <- liftIO $ randomValue $ dataTypeOf English
