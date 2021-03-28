@@ -63,6 +63,7 @@ library
       Commands.Help
       Commands.Translate
       Commands.Youtube
+      Commands.Uwu
       Data.Bot
       Data.CLI
       Data.Discord
