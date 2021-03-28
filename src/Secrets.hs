@@ -22,5 +22,5 @@ tr_key = T.pack <$> getEnv "GOO_KEY" <|> TIO.readFile "./google.secret"
 
 botAdmins :: IO [UserId]
 botAdmins = do
-        ids <- words <$> IO.readFile "./admins.secret"
+        ids <- words <$> (getEnv "ADMINS" <|> IO.readFile "./admins.secret") <|> pure []
         return $ read <$> ids
