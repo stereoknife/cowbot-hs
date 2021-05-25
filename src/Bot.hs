@@ -2,6 +2,7 @@ module Bot (runBot) where
 
 import           Commands            (about, bless, clap, translate, uwu, yt)
 import           Commands.Uwu        (uwuR)
+import           Control.Applicative (Alternative ((<|>)))
 import           Control.Monad       (forM_, unless)
 import           Data.Bot            (command, interpret, reaction)
 import           Data.Data           (Data (dataTypeOf))
@@ -57,7 +58,7 @@ eventHandler event = case event of
       MessageCreate m ->
         unless (fromBot m) $ do
           let mt = fromStrict $ messageText m
-              ps = runParser (ws $ string "🤠" >> word) mt
+              ps = runParser (ws $ (string "🤠" <|> string "boy howdy") >> word) mt
           interpret (maybe "" fst ps) (m, maybe "" snd ps) $ do
             command "about" about
             command "bless" bless
