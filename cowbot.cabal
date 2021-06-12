@@ -52,7 +52,7 @@ common deps
     , utility-ht == 0.0.15
     , vector
 
-library
+library cowbot-lib
   import: deps
   exposed-modules:
       Bot
@@ -85,10 +85,10 @@ library
   default-extensions: OverloadedStrings LambdaCase MultiWayIf
   default-language: Haskell2010
 
-executable cowbot-bin
+executable cowbot
   --import: deps
   build-depends:
-      cowbot
+      cowbot-lib
     , base >=4.7 && <5
   main-is: Main.hs
   other-modules:

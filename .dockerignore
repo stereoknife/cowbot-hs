@@ -2,6 +2,10 @@
 .idea/
 .nova/
 .vscode/
+hie.yaml
+
+# CI
+.github/
 
 # Builds
 dist*/
@@ -11,4 +15,6 @@ build*/
 **/*.secret
 
 # Other files
-.DS_Store
+**/*.md
+.gitignore
+LICENSE
