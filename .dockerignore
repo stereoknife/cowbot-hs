@@ -17,4 +17,5 @@ build*/
 # Other files
 **/*.md
 .gitignore
+.DS_Store
 LICENSE
