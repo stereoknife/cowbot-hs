@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM haskell:8.10.2 AS build
+FROM ghcr.io/stereoknife/docker-haskell-arm:main AS build
 WORKDIR /var/build
 RUN ["cabal", "update"]
 COPY *.cabal .
