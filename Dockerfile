@@ -4,8 +4,7 @@ FROM ghcr.io/stereoknife/docker-haskell-arm:main AS build
 
 WORKDIR /var/build
 
-RUN cabal update
-
+RUN cabal update && cabal configure --ghc-options="-j +RTS -A128m -n2m -s -RTS"
 COPY *.cabal .
 RUN cabal build cowbot-lib --only-dependencies
 
