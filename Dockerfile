@@ -6,8 +6,8 @@ WORKDIR /var/build
 
 RUN cabal update
 COPY *.cabal .
-RUN cabal configure --ghc-options="-j +RTS -A128m -n2m -s -RTS" \
-    && cabal build cowbot-lib --only-dependencies
+RUN cabal build discord-haskell
+RUN cabal build cowbot-lib --only-dependencies
 
 COPY *.hs .
 COPY src/ src/
