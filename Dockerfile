@@ -10,7 +10,7 @@ COPY cabal.*
 RUN cabal build discord-haskell
 RUN cabal build cowbot-lib --only-dependencies
 
-FROM deps
+FROM deps as build
 
 WORKDIR /var/build
 
