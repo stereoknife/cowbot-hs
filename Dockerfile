@@ -6,7 +6,7 @@ WORKDIR /var/build
 
 RUN cabal update
 COPY *.cabal .
-COPY cabal.*
+COPY cabal.* .
 RUN cabal build discord-haskell
 RUN cabal build cowbot-lib --only-dependencies
 
