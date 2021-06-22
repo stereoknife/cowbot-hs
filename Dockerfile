@@ -1,13 +1,18 @@
 # syntax=docker/dockerfile:1
 
-FROM ghcr.io/stereoknife/docker-haskell-arm:main AS build
+FROM ghcr.io/stereoknife/docker-haskell-arm:main AS deps
 
 WORKDIR /var/build
 
 RUN cabal update
 COPY *.cabal .
+COPY cabal.*
 RUN cabal build discord-haskell
 RUN cabal build cowbot-lib --only-dependencies
+
+FROM deps
+
+WORKDIR /var/build
 
 COPY *.hs .
 COPY src/ src/
