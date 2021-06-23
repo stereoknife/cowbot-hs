@@ -8,7 +8,7 @@ RUN cabal update
 COPY *.cabal .
 COPY cabal.* .
 
-RUN cabal build cowbot-lib --only-dependencies
+RUN cabal build cowbot-lib -j10 --only-dependencies
 
 COPY *.hs .
 COPY src/ src/
