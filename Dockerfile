@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM ghcr.io/stereoknife/haskell-aarch64:main AS build
-
+SHELL ["/bin/sh", "-c"]
 ARG jobs=4
 
 WORKDIR /var/build
