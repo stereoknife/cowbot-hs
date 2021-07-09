@@ -10,12 +10,29 @@ RUN cabal update
 COPY *.cabal .
 COPY cabal.* .
 
-RUN cabal build cowbot-lib --jobs=$jobs --only-dependencies
+RUN cabal build cowbot-lib \
+	--jobs=$jobs \
+	--only-dependencies \
+	--enable-split-sections \
+	--enable-split-objs \
+	--enable-executable-stripping \
+	--enable-library-stripping \
+	--disable-tests \
+	--disable-documentation
 
 COPY *.hs .
 COPY src/ src/
 COPY app/ app/
-RUN cabal build exe:cowbot -j$jobs
+RUN cabal build exe:cowbot \
+	--jobs=$jobs \
+	--only-dependencies \
+	--enable-split-sections \
+	--enable-split-objs \
+	--enable-executable-stripping \
+	--enable-library-stripping \
+	--disable-tests \
+	--disable-documentation
+	
 # dist-newstyle/build/x86_64-linux/ghc-8.10.2/cowbot-0.1.0.0/x/cowbot-bin
 
 
