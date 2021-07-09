@@ -2,7 +2,7 @@
 
 FROM ghcr.io/stereoknife/haskell-amd64-x-aarch64:main AS build
 
-ARG jobs=1
+ARG jobs=4
 
 WORKDIR /var/build
 
@@ -10,7 +10,7 @@ RUN cabal update
 COPY *.cabal .
 COPY cabal.* .
 
-RUN cabal build cowbot-lib -j1 --only-dependencies
+RUN cabal build cowbot-lib --jobs=$jobs --only-dependencies
 
 COPY *.hs .
 COPY src/ src/
