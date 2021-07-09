@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM ghcr.io/stereoknife/haskell-docker:main AS build
+FROM ghcr.io/stereoknife/haskell-amd64-x-aarch64:main AS build
 
 WORKDIR /var/build
 

@@ -1,0 +1,4 @@
+constraints:
+  lukko -ofd-locking
+jobs: 1
+packages: ./*.cabal
