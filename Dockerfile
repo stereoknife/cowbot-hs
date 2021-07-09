@@ -8,12 +8,12 @@ RUN cabal update
 COPY *.cabal .
 COPY cabal.* .
 
-RUN cabal build cowbot-lib -j10 --only-dependencies
+RUN cabal build cowbot-lib -j1 --only-dependencies
 
 COPY *.hs .
 COPY src/ src/
 COPY app/ app/
-RUN cabal build exe:cowbot
+RUN cabal build exe:cowbot -j1
 # dist-newstyle/build/x86_64-linux/ghc-8.10.2/cowbot-0.1.0.0/x/cowbot-bin
 
 
