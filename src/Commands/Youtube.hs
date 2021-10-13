@@ -19,7 +19,7 @@ import           Network.Discord     (Reply, reply)
 import           Network.HTTP.Simple (getResponseBody, httpJSON, parseRequest,
                                       setRequestIgnoreStatus, setRequestMethod,
                                       setRequestPath, setRequestQueryString)
-import           Parser.Constructors (rest)
+import           Howdy.Parser (rest)
 import           Secrets             (yt_key)
 import           UnliftIO            (MonadIO, liftIO)
 

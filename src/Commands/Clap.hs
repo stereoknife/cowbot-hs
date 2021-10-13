@@ -1,15 +1,17 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Commands.Clap (clap) where
 
 import           Control.Applicative.Combinators (many)
+--import           Data.Command                    (Command (Command))
 import           Data.Maybe                      (fromMaybe)
 import           Data.Parse                      (Parse (..))
 import           Data.Text.Lazy                  (intercalate)
 import           Data.Text.Lazy.Builder          (toLazyText)
 import           Network.Discord                 (Reply, reply)
-import           Parser.Constructors             (word)
+import           Howdy.Parser             (word)
 import           UnliftIO                        (MonadIO (liftIO))
 
 -- temp suppress errors

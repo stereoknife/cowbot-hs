@@ -9,7 +9,7 @@ import           Control.Monad.State (MonadState (get, put))
 import           Data.Bot            (Command)
 import           Data.Discord        (Exposes, Updates (..), askExposed)
 import           Data.Text.Lazy      (Text)
-import           Parser              (Parser, runParser)
+import           Howdy.Parser        (Parser, runParser)
 
 class (Monad m, Exposes Text m) => Parse m where
     parse :: Parser a -> m (Maybe a)

@@ -73,19 +73,16 @@ library cowbot-lib
       Data.Translation
       Data.Data.Random
       Network.Discord
-      Parser
-      Parser.Constructors
-      Parser.Types
+      Howdy.Parser
+      Howdy.Parser.Types
       Secrets
 
-  other-modules:
-      Paths_cowbot
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings LambdaCase MultiWayIf
   default-language: Haskell2010
 
-executable cowbot
+executable cowbot-bin
   --import: deps
   build-depends:
       cowbot-lib

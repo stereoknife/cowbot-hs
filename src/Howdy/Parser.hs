@@ -2,14 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-module Parser.Constructors where
+module Howdy.Parser (Parser, runParser, rest, word, char, chars, ws, string, anyString) where
 
 import           Control.Applicative (Alternative (empty), many, (<|>))
 import           Control.Monad       (join)
 import           Data.Text.Lazy      (Text, pack, singleton, uncons)
 import qualified Data.Text.Lazy      as T (empty)
 import           Debug.Trace         (trace)
-import           Parser.Types        (Parser (Parser))
+import           Howdy.Parser.Types  (Parser (Parser), runParser)
 import           UnliftIO            (MonadIO (liftIO))
 
 anyChar :: Parser Char
@@ -24,6 +24,7 @@ char c = do
   else empty
 
 chars :: [Char] -> Parser Char
+chars [] = empty
 chars (c:cs) = do
   char c <|> chars cs
 

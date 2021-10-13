@@ -7,7 +7,7 @@ import qualified Data.Text           as T (unpack)
 import qualified Data.Text.Lazy      as L (pack, unpack)
 import           Discord.Types       (Message, messageText)
 import           Network.Discord     (Reply, reply)
-import           Parser.Constructors (rest)
+import           Howdy.Parser (rest)
 import           UnliftIO            (MonadIO, liftIO)
 import           UnliftIO.Process    (readProcess)
 
