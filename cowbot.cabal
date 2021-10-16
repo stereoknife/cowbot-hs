@@ -56,26 +56,7 @@ library cowbot-lib
   import: deps
   exposed-modules:
       Bot
-      Commands
-      Commands.About
-      Commands.Bless
-      Commands.Clap
-      Commands.Help
-      Commands.Translate
-      Commands.Youtube
-      Commands.Uwu
-      Data.Bot
-      Data.CLI
-      Data.Discord
-      Data.Language
-      Data.Network
-      Data.Parse
-      Data.Translation
-      Data.Data.Random
-      Network.Discord
-      Howdy.Parser
-      Howdy.Parser.Types
-      Secrets
+      Howdy.Actions
 
   hs-source-dirs:
       src
