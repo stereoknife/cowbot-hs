@@ -31,6 +31,8 @@ common deps
     , exceptions
     , containers
     , discord-haskell >= 1.8.0 && < 1.9
+    , data-default >= 0.7 && < 0.8
+    -- , data-default == 0.7.1.1
     , emoji
     , first-class-families >= 0.8 && < 0.9
     , hedis >= 0.14 && < 0.15
