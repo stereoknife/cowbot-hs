@@ -1,41 +1,20 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module Howdy.Actions where
 import Data.Text (Text)
-import Discord ( DiscordHandler )
-import Discord.Types ( Message(messageText), ReactionInfo )
-import Testing (Parser (runParser))
-import Control.Monad.Reader (ReaderT (runReaderT))
+import Discord (DiscordHandler)
+import Discord.Types (Emoji, User, Message, Channel, Guild)
+import Howdy.Context (Contexts)
 
-newtype Action a = MkAction { runAction :: Text -> DiscordHandler a }
-newtype Reaction a = MkReaction { runReaction :: ReactionInfo -> DiscordHandler a }
-newtype Command a = MkCommand { runCommand :: Message -> DiscordHandler a }
+data Action where
+    Command :: Text -> Text -> DiscordHandler () -> Action
+    Reaction :: Emoji -> Text -> DiscordHandler () -> Action
 
-type Wrapper a = ReaderT a DiscordHandler
+type ActionContext m = (Contexts [Message, User, Channel, Guild] m, Reply m)
 
-class Reply m where
-    reply :: Text -> m ()
-
-instance Reply DiscordHandler where
-    reply t = undefined
-
-instance Reply (Wrapper Message) where
-    reply = undefined
-
-class Parse m where
-    parse :: Parser a -> m (Maybe a)
-
-instance Parse Command where
-    parse p = MkCommand $ \m -> do
-        let t = messageText m
-            a = runParser p t
-        pure $ fst <$> a
-
-instance Parse Action where
-    parse p = MkAction $ \t -> pure $ fst <$> runParser p t
-
-command :: Wrapper Message a -> Command a
-command rm = MkCommand $ \m -> runReaderT rm m
+class Monad m => Reply m where
+  reply :: Text -> m ()
