@@ -31,3 +31,6 @@ class Functor f => Property (a :: Symbol) f where
 instance (Context Message m, Functor m) => Property "author" m where
     type Key "author" = User
     prop = fctx @Message messageAuthor
+
+class Exposes a b where
+    exp :: a -> b
