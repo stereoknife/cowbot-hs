@@ -21,13 +21,9 @@ run = bot $ -- bot is function that runs discord with preconfigured settings
 -}
 
 -- Option 1
-
-
-bot :: a
-bot = undefined 
-
+ 
 cowbot :: Monad m => m ()
-cowbot = bot $ do
+cowbot = do
   prefix ["boy howdy", "cowboy"]
 
   command
@@ -48,11 +44,11 @@ bless = do
 
 clap :: ActionContext m => m ()
 clap = do
-  a <- fctx argString
+  a <- fctx rest
   reply . T.intercalate "clap" . T.words $ a
 
 -- command end: needs these
 -- how to handle aliases?
 
-argString :: Message -> Text
-argString = undefined 
+rest :: Message -> Text
+rest = undefined 

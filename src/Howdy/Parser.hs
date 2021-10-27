@@ -47,5 +47,8 @@ word = many (char ' ') >> text ' '
 flag :: Parser Text
 flag = string "--" >> text ' '
 
+rest :: Parser [Char]
+rest = many anyChar
+
 firstof :: (a -> Parser b) -> [a] -> Parser b
 firstof f = foldr ((<|>) . f) empty

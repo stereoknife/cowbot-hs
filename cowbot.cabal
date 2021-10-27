@@ -59,6 +59,10 @@ library cowbot-lib
   exposed-modules:
       Bot
       Howdy.Actions
+      Howdy.Bot
+      Howdy.Context
+      Howdy.Parser
+      Howdy.Parser.Trans
 
   hs-source-dirs:
       src
