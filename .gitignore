@@ -3,9 +3,9 @@
 .nova/
 .vscode/
 
-# Builds
-dist*/
-build*/
+# Cabal
+*.project.local
+dist-newstyle/
 
 # Secrets
 **/*.secret
