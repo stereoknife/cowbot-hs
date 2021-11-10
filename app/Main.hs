@@ -1,11 +1,13 @@
 module Main where
 
+import           Commands.Bless      (bless)
 import           Control.Applicative (Alternative (empty, many))
 import qualified Data.Text           as T
-import           Howdy.Action        (action, alias, aliases, desc)
+import           Howdy.Action        (CommandRunner, action, alias, aliases,
+                                      desc)
 import           Howdy.Bot           (bot, command, prefixes, run)
 import           Howdy.Discord.Class (Reply (reply))
-import           Howdy.Parser        (MonadParse (parse), char, rest)
+import           Howdy.Parser        (MonadParse (parse), char, rest, word)
 
 main :: IO ()
 main = run . bot $ do
@@ -20,23 +22,26 @@ main = run . bot $ do
     command $ do
         alias "echo"
         desc "no desc"
-        action $ do
-            t <- parse rest
-            case t of Just t' -> reply t'
-                      _       -> pure ()
+        action $ parse rest >>= reply
 
     command $ do
         alias "elongate"
         desc "it elongates"
         action $ do
             t <- parse (many (char ' ') >> rest)
-            case t of Just t' -> reply $ "`" <> T.intersperse ' ' t' <> "`"
-                      _       -> pure ()
+            reply $ "`" <> T.intersperse ' ' t <> "`"
+
+    command $ do
+        alias "clap"
+        desc "claps back"
+        action $ do
+            t <- parse (many word)
+            reply $ T.intercalate "👏" t <> "👏"
 
     command $ do
         alias "bless"
         desc "blesses the chat"
-        action empty
+        action bless
 
     command $ do
         aliases ["t", "translate"]
@@ -45,5 +50,10 @@ main = run . bot $ do
 
     command $ do
         alias "uwu"
+        desc "uwu"
+        action empty
+
+    command $ do
+        aliases ["yt", "youtube"]
         desc "uwu"
         action empty

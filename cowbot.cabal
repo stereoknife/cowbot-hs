@@ -25,14 +25,19 @@ executable cowbot
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules:
+        Commands.Bless
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-          base ^>=4.14.3.0
-        , howdy == 0.1.0.2
-        , text ^>= 1.2.4.1
+          howdy           == 0.1.0.2
+        , base            ^>= 4.14.3.0 
+        , text            ^>= 1.2.4.1
+        , aeson           ^>= 2.0.1.0
+        , http-client     ^>= 0.7.9
+        , http-client-tls ^>= 0.3.5.3
+        , exceptions      ^>= 0.10.4
     hs-source-dirs:   app
     default-extensions: OverloadedStrings
     default-language: Haskell2010
