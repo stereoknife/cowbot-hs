@@ -1,0 +1,3 @@
+[submodule "howdy"]
+	path = howdy
+	url = https://github.com/stereoknife/howdy.git
