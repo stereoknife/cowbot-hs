@@ -40,13 +40,14 @@ transRec = do
 transRecRandom :: ReactionRunner ()
 transRecRandom = do
     m <- fctx @Message messageText
-    l <- liftIO $ randomValue $ dataTypeOf English
+    l <- liftIO $ randomValue @Lang $ dataTypeOf English
+    -- reply $ langName l
     trans m l
 
 trans :: (MonadIO m, MonadThrow m, MonadReply m) => Text -> Lang -> m ()
 trans t l = do
     let tx = Auto t
-    tr <- translate tx English
+    tr <- translate tx l
     a <- ctx @User
 
     let trr = take 2 $ locTextArray tr

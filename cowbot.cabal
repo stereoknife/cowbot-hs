@@ -28,6 +28,7 @@ executable cowbot
     other-modules:
         Commands.Bless
         Commands.Translate
+        Commands.Youtube
         Data.Language
         Data.Translation
         Data.Random
@@ -48,6 +49,7 @@ executable cowbot
         , discord-haskell
         , html-entities
         , random
+        , process         ^>=1.6.13.2
     hs-source-dirs:   app
     default-extensions: OverloadedStrings
     default-language: Haskell2010

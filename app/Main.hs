@@ -1,15 +1,20 @@
 module Main where
 
-import           Commands.Bless      (bless)
-import           Commands.Translate  (transCmd, transRec, transRecRandom)
-import           Control.Applicative (Alternative (empty, many))
-import qualified Data.Text           as T
-import           Howdy.Action        (CommandRunner, alias, aliases, desc,
-                                      emoji, run)
-import           Howdy.Bot           (bot, command, prefixes, reaction)
-import           Howdy.Discord.Class (MonadReply (reply))
-import           Howdy.Parser        (MonadParse (parse), char, rest,
-                                      whitespace, word)
+import           Commands.Bless         (bless)
+import           Commands.Translate     (transCmd, transRec, transRecRandom)
+import           Commands.Youtube       (yt)
+import           Control.Applicative    (Alternative (empty, many))
+import           Control.Monad.IO.Class (liftIO)
+import qualified Data.Text              as T
+import           Howdy.Action           (CommandRunner, alias, aliases, desc,
+                                         emoji, run)
+import           Howdy.Bot              (bot, command, prefixes, reaction)
+import           Howdy.Context          (fctx)
+import           Howdy.Discord.Class    (Message (messageText),
+                                         MonadReply (reply))
+import           Howdy.Parser           (MonadParse (parse), char, rest,
+                                         whitespace, word)
+import           System.Process         (readProcess)
 
 main :: IO ()
 main = bot $ do
@@ -53,12 +58,15 @@ main = bot $ do
     command $ do
         aliases ["yt", "youtube"]
         desc "searches a video on youtube and posts the first result"
-        run empty
+        run yt
 
     command $ do
         alias "uwu"
         desc "uwuifies text"
-        run empty
+        run $ do
+            ms <- parse rest
+            uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
+            reply $ T.pack uwu
 
     reaction $ do
         emoji "🔣"
@@ -69,3 +77,11 @@ main = bot $ do
         emoji "🗺️"
         desc "no desc"
         run transRecRandom
+
+    reaction $ do
+        emoji "♋"
+        desc "uwuifies text"
+        run $ do
+            ms <- fctx messageText
+            uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
+            reply $ T.pack uwu
