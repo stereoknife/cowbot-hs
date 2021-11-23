@@ -27,6 +27,11 @@ executable cowbot
     -- Modules included in this executable, other than Main.
     other-modules:
         Commands.Bless
+        Commands.Translate
+        Data.Language
+        Data.Translation
+        Data.Random
+        Secrets
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -35,9 +40,14 @@ executable cowbot
         , base            ^>= 4.14.3.0 
         , text            ^>= 1.2.4.1
         , aeson           ^>= 2.0.1.0
-        , http-client     ^>= 0.7.9
-        , http-client-tls ^>= 0.3.5.3
+        --, http-client     ^>= 0.7.9
+        --, http-client-tls ^>= 0.3.5.3
+        , http-conduit
+        , http-types
         , exceptions      ^>= 0.10.4
+        , discord-haskell
+        , html-entities
+        , random
     hs-source-dirs:   app
     default-extensions: OverloadedStrings
     default-language: Haskell2010

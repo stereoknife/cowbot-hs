@@ -2,17 +2,19 @@
 {-# LANGUAGE TypeApplications #-}
 
 module Commands.Bless where
-import           Control.Monad.Catch     (MonadThrow)
-import           Control.Monad.IO.Class  (MonadIO (liftIO))
-import           Data.Aeson              (FromJSON, decode)
-import           Data.Text               (Text)
-import           GHC.Generics            (Generic)
-import           Howdy.Action            (CommandRunner)
-import           Howdy.Discord.Class     (Reply, reply)
-import           Howdy.Error             (HowdyException (..), report)
-import           Network.HTTP.Client     (Response (responseBody), httpLbs,
-                                          newManager, parseRequest)
-import           Network.HTTP.Client.TLS (tlsManagerSettings)
+import           Control.Monad.Catch    (MonadThrow)
+import           Control.Monad.IO.Class (MonadIO (liftIO))
+import           Data.Aeson             (FromJSON, decode)
+import           Data.Text              (Text)
+import           Data.Text.Encoding     (encodeUtf8)
+import           GHC.Generics           (Generic)
+import           Howdy.Action           (CommandRunner)
+import           Howdy.Discord.Class    (MonadReply, reply)
+import           Howdy.Error            (HowdyException (..), report)
+import           Network.HTTP.Simple    (getResponseBody, httpJSON,
+                                         parseRequest, setRequestIgnoreStatus,
+                                         setRequestMethod, setRequestPath,
+                                         setRequestQueryString)
 
 data APIResponse = APIResponse { bookname :: Text
                                , chapter  :: Text
@@ -22,15 +24,21 @@ data APIResponse = APIResponse { bookname :: Text
 
 instance FromJSON APIResponse where
 
-bless :: (MonadIO m, Reply m, MonadThrow m) => m ()
+bless :: (MonadIO m, MonadReply m, MonadThrow m) => m ()
 bless = do
-    manager <- liftIO $ newManager tlsManagerSettings
-    request <- parseRequest "http://labs.bible.org/api?passage=random&type=json"
+    defReq <- parseRequest "https://labs.bible.org/"
 
-    response <- liftIO $ httpLbs request manager
+    let request
+            = setRequestPath "/api"
+            $ setRequestMethod "GET"
+            $ setRequestQueryString [ ("passage", Just $ encodeUtf8 "random")
+                                    , ("type", Just $ encodeUtf8 "json")
+                                    ]
+            $ setRequestIgnoreStatus
+            defReq
 
-    payload <- report UnknownError $ decode @[APIResponse] $ responseBody response
+    response <- httpJSON request
 
-    let r = head payload
+    let r = head $ getResponseBody @[APIResponse] response
 
     reply $ "**" <> bookname r <> " " <> chapter r <> ":" <> verse r <> "** " <> text r

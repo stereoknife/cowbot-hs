@@ -1,59 +1,71 @@
 module Main where
 
 import           Commands.Bless      (bless)
+import           Commands.Translate  (transCmd, transRec, transRecRandom)
 import           Control.Applicative (Alternative (empty, many))
 import qualified Data.Text           as T
-import           Howdy.Action        (CommandRunner, action, alias, aliases,
-                                      desc)
-import           Howdy.Bot           (bot, command, prefixes, run)
-import           Howdy.Discord.Class (Reply (reply))
-import           Howdy.Parser        (MonadParse (parse), char, rest, word)
+import           Howdy.Action        (CommandRunner, alias, aliases, desc,
+                                      emoji, run)
+import           Howdy.Bot           (bot, command, prefixes, reaction)
+import           Howdy.Discord.Class (MonadReply (reply))
+import           Howdy.Parser        (MonadParse (parse), char, rest,
+                                      whitespace, word)
 
 main :: IO ()
-main = run . bot $ do
+main = bot $ do
     prefixes ["boy howdy", "🤠"]
 
     command $ do
         alias "ping"
         desc "just a ping"
-        action $ reply "pong"
+        run $ reply "pong"
         -- disabled
 
     command $ do
         alias "echo"
-        desc "no desc"
-        action $ parse rest >>= reply
+        desc "just an echo"
+        run $ parse rest >>= reply
 
     command $ do
         alias "elongate"
         desc "it elongates"
-        action $ do
-            t <- parse (many (char ' ') >> rest)
+        run $ do
+            t <- parse (many whitespace >> rest)
             reply $ "`" <> T.intersperse ' ' t <> "`"
 
     command $ do
         alias "clap"
         desc "claps back"
-        action $ do
+        run $ do
             t <- parse (many word)
             reply $ T.intercalate "👏" t <> "👏"
 
     command $ do
         alias "bless"
         desc "blesses the chat"
-        action bless
+        run bless
 
     command $ do
         aliases ["t", "translate"]
         desc "translates something to english"
-        action empty
-
-    command $ do
-        alias "uwu"
-        desc "uwu"
-        action empty
+        run transCmd
 
     command $ do
         aliases ["yt", "youtube"]
-        desc "uwu"
-        action empty
+        desc "searches a video on youtube and posts the first result"
+        run empty
+
+    command $ do
+        alias "uwu"
+        desc "uwuifies text"
+        run empty
+
+    reaction $ do
+        emoji "🔣"
+        desc "no desc"
+        run transRec
+
+    reaction $ do
+        emoji "🗺️"
+        desc "no desc"
+        run transRecRandom
