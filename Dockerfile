@@ -42,5 +42,5 @@ CMD ["/bin/bash"]
 # WORKDIR /var/bot
 # COPY --from=build /var/build/dist-newstyle/build/aarch64-linux/ghc-8.10.7/cowbot-0.1.0.0/x/cowbot/build/cowbot/cowbot ./cowbot
 # RUN chmod +x ./cowbot \
-# 	&& echo "NzM0MDkzODE4MTc2OTk1MzU5.XxMsJQ.rkSEJFXDhqxCzHIfoq3wuGoTGAI" >> token.secret
+# 	&& echo "oops guess I leaked my token" >> token.secret
 # CMD ["/var/bot/cowbot"]
