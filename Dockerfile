@@ -20,8 +20,8 @@ RUN cabal build howdy \
 	--disable-tests \
 	--disable-documentation
 
-COPY *.hs .
-COPY app/ app/
+COPY . .
+
 RUN cabal build cowbot \
 	--jobs=$jobs \
 	--enable-split-sections \
@@ -31,16 +31,37 @@ RUN cabal build cowbot \
 	--disable-tests \
 	--disable-documentation
 
-#RUN cabal install cowbot
+RUN cabal install cowbot \
+	--install-method=copy \
+	--overwrite-policy=always
+
+RUN apt-get update && \
+	apt-get install --no-install-recommends -y upx
+
+RUN strip /root/.cabal/bin/cowbot \
+	&& upx /root/.cabal/bin/cowbot
+
 CMD ["/bin/bash"]
-	
-# dist-newstyle/build/aarch64-linux/ghc-8.10.7/cowbot-0.1.0.0/x/cowbot/build/cowbot/cowbot
 
+# FROM rust:1.55 as uwu-build
 
-# FROM arm64v8/alpine:latest
+# RUN cargo install uwuify
 
-# WORKDIR /var/bot
-# COPY --from=build /var/build/dist-newstyle/build/aarch64-linux/ghc-8.10.7/cowbot-0.1.0.0/x/cowbot/build/cowbot/cowbot ./cowbot
-# RUN chmod +x ./cowbot \
-# 	&& echo "oops guess I leaked my token" >> token.secret
-# CMD ["/var/bot/cowbot"]
+FROM debian:stable-slim
+
+WORKDIR /var/bot
+
+RUN apt-get update && \
+	apt-get install --no-install-recommends -y \
+	zlib1g \
+	libnuma1 \
+	ca-certificates
+
+COPY --from=build /root/.cabal/bin/cowbot ./cowbot
+# COPY --from=uwu-build /root/.cargo/bin/uwuify ./uwuify
+
+ENV PATH="/var/bot:${PATH}"
+
+RUN chmod +x ./cowbot
+
+CMD ["/var/bot/cowbot"]

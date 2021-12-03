@@ -8,14 +8,15 @@ hie.yaml
 .github/
 
 # Builds
-dist*/
-build*/
+**/dist*/
+**/build*/
 
 # Secrets
 **/*.secret
 
 # Other files
-**/*.md
 .gitignore
 .DS_Store
-LICENSE
+*.save0
+Dockerfile
+.dockerignore
