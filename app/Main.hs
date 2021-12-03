@@ -33,36 +33,41 @@ main = bot $ do
 
     command $ do
         alias "elongate"
-        desc "it elongates"
+        desc "elongate"
         run $ do
             t <- parse (many whitespace >> rest)
             reply $ "`" <> T.intersperse ' ' t <> "`"
 
     command $ do
         alias "clap"
-        desc "claps back"
+        desc "clap back"
         run $ do
             t <- parse (many word)
             reply $ T.intercalate "👏" t <> "👏"
 
     command $ do
         alias "bless"
-        desc "blesses the chat"
+        desc "bless the chat"
         run bless
 
     command $ do
         aliases ["t", "translate"]
-        desc "translates something to english"
+        desc "translate something to english"
         run transCmd
 
     command $ do
         aliases ["yt", "youtube"]
-        desc "searches a video on youtube and posts the first result"
+        desc "search a video on youtube and post the first result"
         run yt
 
     command $ do
+        alias "xi"
+        desc "post xi"
+        run $ reply "https://cdn.discordapp.com/attachments/481781014343974912/916265077471084614/dl.mp4"
+
+    command $ do
         alias "uwu"
-        desc "uwuifies text"
+        desc "uwuify text"
         run $ do
             ms <- parse rest
             uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
