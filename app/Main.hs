@@ -61,9 +61,14 @@ main = bot $ do
         run yt
 
     command $ do
-        alias "xi"
+        aliases ["xi", "🇨🇳"]
         desc "post xi"
         run $ reply "https://cdn.discordapp.com/attachments/481781014343974912/916265077471084614/dl.mp4"
+
+    command $ do
+        aliases ["bashar", "🇸🇾"]
+        desc "post bashar"
+        run $ reply "https://media.discordapp.net/attachments/140942235670675456/914192060037345330/undefeated.png"
 
     command $ do
         alias "uwu"
