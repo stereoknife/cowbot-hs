@@ -9,7 +9,7 @@ An AArch64 image is available in this repository's packages. Simply run
 docker run -d \
     -e DISCORD_TOKEN=<your-token> \
     -e GOOGLE_KEY=<your-key> \
-    ghcr.io/stereoknife/cowbot:slim
+    ghcr.io/stereoknife/cowbot-hs:slim
 ```
 to start the bot.
 
