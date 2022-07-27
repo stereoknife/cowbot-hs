@@ -2,8 +2,9 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds #-}
 
-module Commands.Youtube (yt) where
+module Commands.Youtube where
 
 import           Control.Applicative    (Alternative)
 import           Control.Monad          (guard)
@@ -15,13 +16,15 @@ import           Data.Maybe             (fromJust, isJust)
 import           Data.Text              (Text)
 import           Data.Text.Encoding     (encodeUtf8)
 import           GHC.Generics           (Generic)
-import           Howdy.Discord.Class    (MonadReply (reply))
-import           Howdy.Parser           (MonadParse (parse), rest)
 import           Network.HTTP.Simple    (getResponseBody, httpJSON,
                                          parseRequest, setRequestIgnoreStatus,
                                          setRequestMethod, setRequestPath,
                                          setRequestQueryString)
 import           Secrets                (youtubeKey)
+import Howdy.Internal.Command
+import Howdy.Parser
+import Control.Monad.Reader (asks)
+import Howdy.Discord (send)
 
 data Body = Body
     { q          :: Text
@@ -66,11 +69,9 @@ youtubeRequest query = do
 
     pure $ Right $ getText resBody
 
-yt :: (MonadReply m, MonadIO m, Alternative m, MonadParse m, MonadThrow m) => m ()
+yt :: Command
 yt = do
-    query <- parse rest
-
+    query <- asks (.args)
     id <- youtubeRequest query
-
-    case id of Right id -> reply $ "https://youtube.com/watch?v=" <> id
-               _        -> reply "Couldn't find anything 😔"
+    case id of Right id -> send $ "https://youtube.com/watch?v=" <> id
+               _        -> send "Couldn't find anything 😔"

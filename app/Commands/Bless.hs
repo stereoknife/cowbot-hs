@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds #-}
 
 module Commands.Bless where
 import           Control.Monad.Catch    (MonadThrow)
@@ -8,13 +10,13 @@ import           Data.Aeson             (FromJSON, decode)
 import           Data.Text              (Text)
 import           Data.Text.Encoding     (encodeUtf8)
 import           GHC.Generics           (Generic)
-import           Howdy.Action           (CommandRunner)
-import           Howdy.Discord.Class    (MonadReply, reply)
 import           Howdy.Error            (HowdyException (..), report)
 import           Network.HTTP.Simple    (getResponseBody, httpJSON,
                                          parseRequest, setRequestIgnoreStatus,
                                          setRequestMethod, setRequestPath,
                                          setRequestQueryString)
+import Howdy.Internal.Command
+import Howdy.Internal.Discord
 
 data APIResponse = APIResponse { bookname :: Text
                                , chapter  :: Text
@@ -24,7 +26,7 @@ data APIResponse = APIResponse { bookname :: Text
 
 instance FromJSON APIResponse where
 
-bless :: (MonadIO m, MonadReply m, MonadThrow m) => m ()
+bless :: Command
 bless = do
     defReq <- parseRequest "https://labs.bible.org/"
 
@@ -41,4 +43,4 @@ bless = do
 
     let r = head $ getResponseBody @[APIResponse] response
 
-    reply $ "**" <> bookname r <> " " <> chapter r <> ":" <> verse r <> "** " <> text r
+    send $ "**" <> bookname r <> " " <> chapter r <> ":" <> verse r <> "** " <> text r

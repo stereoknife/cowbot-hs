@@ -26,6 +26,7 @@ executable cowbot
 
     -- Modules included in this executable, other than Main.
     other-modules:
+        Commands.AlBless
         Commands.Bless
         Commands.Translate
         Commands.Youtube
@@ -37,20 +38,24 @@ executable cowbot
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-          howdy           == 0.1.0.2
-        , base            ^>= 4.14.0 
-        , text            ^>= 1.2.4.1
-        , aeson           ^>= 2.0.1.0
+          howdy
+        , base
+        , text
+        , aeson
         --, http-client     ^>= 0.7.9
         --, http-client-tls ^>= 0.3.5.3
         , http-conduit
         , http-types
-        , exceptions      ^>= 0.10.4
+        , exceptions
         , discord-haskell
         , html-entities
         , random
         , process         ^>=1.6.13.2
+        , transformers
+
+        -- remove later
+        , mtl
     hs-source-dirs:   app
-    default-extensions: OverloadedStrings
+    default-extensions: OverloadedStrings, OverloadedRecordDot
     default-language: Haskell2010
     ghc-options: -O

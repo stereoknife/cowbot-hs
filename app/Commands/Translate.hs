@@ -1,61 +1,55 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ImpredicativeTypes #-}
 
-module Commands.Translate (transCmd, transRec, transRecRandom) where
+module Commands.Translate where
 
-import           Control.Applicative    (Alternative)
-import           Control.Monad          (guard)
-import           Control.Monad.Catch    (MonadThrow)
-import           Control.Monad.IO.Class (MonadIO (liftIO))
-import           Data.Data              (dataTypeOf)
-import           Data.Language          (Lang (English), langName)
-import           Data.Random            (randomValue)
-import           Data.Text              (Text)
-import qualified Data.Text              as T
-import           Data.Translation       (KL (KLang), LocalizedText (Auto),
-                                         locText, locTextArray, translate,
-                                         whatLang)
-import           Discord                (def)
-import           Discord.Types          (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
-                                         CreateEmbedImage (CreateEmbedImageUrl),
-                                         EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
-                                         Message (messageText),
-                                         User (userAvatar, userId, userName))
-import           Howdy.Action           (CommandRunner, ReactionRunner)
-import           Howdy.Context          (Context (ctx, fctx))
-import           Howdy.Discord.Class    (MonadReply (reply), embed)
-import           Howdy.Parser           (MonadParse (parse), rest)
+import Howdy.Command ( Command, CommandInput(..), CommandWith )
+import Howdy.Internal.Reaction
+import Data.Language
+import Control.Monad.Catch
+import Control.Monad.IO.Class
+import Howdy.Internal.Discord
+import Data.Text (Text)
+import Discord.Types
+import Data.Translation
+import qualified Data.Text as T
+import Control.Monad.Reader
+import GHC.Records
+import Data.Data
+import Data.Random
+import Discord
 
-transCmd :: CommandRunner ()
+transCmd :: Command
 transCmd = do
-    t <- parse rest
-    trans t English
+    t <- ask
+    trans t.args English
 
-transRec :: ReactionRunner ()
-transRec = do
-    m <- fctx @Message messageText
-    trans m English
+-- transRec :: Reaction
+-- transRec = do
+--     m <- ask
+--     trans m.args English
 
-transRecRandom :: ReactionRunner ()
-transRecRandom = do
-    m <- fctx @Message messageText
-    l <- liftIO $ randomValue @Lang $ dataTypeOf English
-    -- reply $ langName l
-    trans m l
+-- transRecRandom :: Reaction
+-- transRecRandom = do
+--     m <- ask
+--     l <- liftIO $ randomValue @Lang $ dataTypeOf English
+--     -- reply $ langName l
+--     trans m.args l
 
-trans :: (MonadIO m, MonadThrow m, MonadReply m) => Text -> Lang -> m ()
+trans :: Text -> Lang -> Command
 trans t l = do
     let tx = Auto t
     tr <- translate tx l
-    a <- ctx @User
+    a <- ask
 
     let trr = take 2 $ locTextArray tr
     if locText (last trr) == locText (head trr)
-    then reply "nothing to translate.."
-    else writeOut a trr
+    then send "nothing to translate.."
+    else writeOut a.user trr
 
-writeOut :: MonadReply m => User -> [LocalizedText 'KLang] -> m ()
+writeOut :: User -> [LocalizedText 'KLang] -> Command
 writeOut a trr = embed $ let fr = EmbedField { embedFieldName = langName $ whatLang $ last trr
                                     , embedFieldValue = locText $ last trr
                                     , embedFieldInline = Just False

@@ -1,97 +1,90 @@
 module Main where
 
 import           Commands.Bless         (bless)
-import           Commands.Translate     (transCmd, transRec, transRecRandom)
-import           Commands.Youtube       (yt)
-import           Control.Applicative    (Alternative (empty, many))
-import           Control.Monad.IO.Class (liftIO)
-import qualified Data.Text              as T
-import           Howdy.Action           (CommandRunner, alias, aliases, desc,
-                                         emoji, run)
-import           Howdy.Bot              (bot, command, prefixes, reaction)
-import           Howdy.Context          (fctx)
-import           Howdy.Discord.Class    (Message (messageText),
-                                         MonadReply (reply))
-import           Howdy.Parser           (MonadParse (parse), char, rest,
-                                         whitespace, word)
+import           Commands.AlBless         (alBless)
 import           System.Process         (readProcess)
+import qualified Data.Text as T
+import Howdy.Bot ( bot, command, prefixes )
+import Howdy.Command ( alias, desc, run, CommandInput(channel, args) )
+import qualified Howdy.Internal.Command as C
+import Howdy.Internal.Discord ( send )
+import Control.Monad.Reader ( MonadIO(liftIO), MonadReader(ask), asks )
+import Commands.Youtube (yt)
+import Howdy.Internal.Reaction (EmojiIdentifier (..))
+import qualified Howdy.Internal.Reaction as R
+import Commands.Translate (transCmd)
 
 main :: IO ()
 main = bot $ do
     prefixes ["boy howdy", "🤠"]
 
-    command $ do
-        alias "ping"
+    command "ping" $ do
         desc "just a ping"
-        run $ reply "pong"
+        run $ send "pong"
         -- disabled
 
-    command $ do
-        alias "echo"
+    command "echo" $ do
         desc "just an echo"
-        run $ parse rest >>= reply
+        run $ do
+            t <- ask
+            send t.args
 
-    command $ do
-        alias "elongate"
+    command "elongate" $ do
         desc "elongate"
         run $ do
-            t <- parse (many whitespace >> rest)
-            reply $ "`" <> T.intersperse ' ' t <> "`"
+            t <- ask
+            send $ "`" <> T.intersperse ' ' t.args <> "`"
 
-    command $ do
-        alias "clap"
+    command "clap" $ do
         desc "clap back"
-        run $ do
-            t <- parse (many word)
-            reply $ T.intercalate "👏" t <> "👏"
+        run $ do
+            t <- ask
+            send $ T.intercalate "👏" (T.words t.args) <> "👏"
 
-    command $ do
-        alias "bless"
+    command "bless" $ do
         desc "bless the chat"
         run bless
 
-    command $ do
-        aliases ["t", "translate"]
+    command "al-bless" $ do
+        desc "al-bless the chat"
+        run alBless
+
+    command "t" $ do
+        alias ["translate"]
         desc "translate something to english"
         run transCmd
 
-    command $ do
-        aliases ["yt", "youtube"]
+    command "yt" $ do
+        alias ["youtube"]
         desc "search a video on youtube and post the first result"
         run yt
 
-    command $ do
-        aliases ["xi", "🇨🇳"]
+    command "xi" $ do
         desc "post xi"
-        run $ reply "https://cdn.discordapp.com/attachments/481781014343974912/916265077471084614/dl.mp4"
+        run $ send "https://cdn.discordapp.com/attachments/481781014343974912/916265077471084614/dl.mp4"
 
-    command $ do
-        aliases ["bashar", "🇸🇾"]
+    command "bashar" $ do
         desc "post bashar"
-        run $ reply "https://media.discordapp.net/attachments/140942235670675456/914192060037345330/undefeated.png"
+        run $ send "https://media.discordapp.net/attachments/140942235670675456/914192060037345330/undefeated.png"
 
-    command $ do
-        alias "uwu"
+    command "uwu" $ do
         desc "uwuify text"
         run $ do
-            ms <- parse rest
+            ms <- asks (.args)
             uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
-            reply $ T.pack uwu
+            send $ T.pack uwu
 
-    reaction $ do
-        emoji "🔣"
-        desc "no desc"
-        run transRec
+    -- reaction (Unicode "🔣") $ do
+    --     R.desc "no desc"
+    --     R.run transRec
 
-    reaction $ do
-        emoji "🗺️"
-        desc "no desc"
-        run transRecRandom
+    -- reaction (Unicode "🗺️") $ do
+    --     R.desc "no desc"
+    --     R.run transRecRandom
 
-    reaction $ do
-        emoji "♋"
-        desc "uwuifies text"
-        run $ do
-            ms <- fctx messageText
-            uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
-            reply $ T.pack uwu
+    -- reaction (Unicode "♋")$ do
+    --     R.desc "uwuifies text"
+    --     R.run $ do
+    --           ms <- asks (.args)
+    --           uwu <- liftIO $ readProcess "uwuify" [] (T.unpack ms)
+    --           send $ T.pack uwu
