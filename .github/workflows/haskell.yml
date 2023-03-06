@@ -38,8 +38,8 @@ jobs:
     
     - name: Install OS dependencies
       run: |
-        apt-get update
-        apt-get install build-essentials llvm
+        sudo apt-get update
+        sudo apt-get install build-essentials llvm
 
     - name: Install dependencies
       run: |
