@@ -35,6 +35,11 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+    
+    - name: Install OS dependencies
+      run: |
+        apt-get update
+        apt-get install build-essentials llvm
 
     - name: Install dependencies
       run: |
