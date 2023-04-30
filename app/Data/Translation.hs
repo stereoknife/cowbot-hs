@@ -20,7 +20,7 @@ module Data.Translation ( LocalizedText (..)
 
 import           Control.Applicative        (Alternative ((<|>)))
 import           Control.Monad              (when)
-import           Control.Monad.Catch        (MonadThrow)
+import           Control.Monad.Catch        (MonadThrow (throwM))
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON (parseJSON), ToJSON,
                                              withObject, (.:), (.:?))
@@ -32,9 +32,9 @@ import           Data.Text.Encoding         (encodeUtf8)
 import           Data.Text.Internal.Builder (toLazyText)
 import           Data.Text.Lazy             (toStrict)
 import           GHC.Generics               (Generic)
-import           HTMLEntities.Decoder       (htmlEncodedText)
 import           Howdy.Error                (HowdyException (UnknownError),
                                              MonadError (throwError))
+import           HTMLEntities.Decoder       (htmlEncodedText)
 import           Network.HTTP.Simple        (getResponseBody, httpJSON,
                                              parseRequest, setRequestBodyJSON,
                                              setRequestHeader,
@@ -108,7 +108,7 @@ locTextArray :: LocalizedText KLang -> [LocalizedText KLang]
 locTextArray l@(LocalizedText _ _)   = [l]
 locTextArray (TranslatedText l t lt) = LocalizedText l t : locTextArray lt
 
-translate :: forall a m. (MonadIO m, MonadThrow m, MonadError HowdyException m) => LocalizedText a -> Lang -> m (LocalizedText KLang)
+translate :: forall a m. (MonadIO m, MonadThrow m) => LocalizedText a -> Lang -> m (LocalizedText KLang)
 translate t' tl = do
     let t  = locText t'
         fl = whatLang' t'
@@ -133,7 +133,7 @@ translate t' tl = do
         resText = toStrict . toLazyText . htmlEncodedText $ translation resBody
         detLang = fl <|> detectedLang resBody
 
-    when (isNothing detLang) $ throwError UnknownError
+    when (isNothing detLang) $ throwM UnknownError
 
     let otl :: LocalizedText KLang = case t' of TranslatedText {} -> t'
                                                 _                 -> LocalizedText (fromJust detLang) t

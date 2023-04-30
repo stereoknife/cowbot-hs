@@ -13,3 +13,6 @@ randomValue :: Data a => DataType -> IO a
 randomValue d = do
     cons <- randomCons d
     return $ fromConstr cons
+
+randomNum :: (Int, Int) -> IO Int
+randomNum = getStdRandom . randomR

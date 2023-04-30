@@ -1,55 +1,62 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Commands.Translate where
+import           Control.Monad.Reader    (MonadIO (..), MonadReader (ask))
+import           Data.Data               (Data (..))
+import           Data.Language           (Lang (English), langName)
+import           Data.Random             (randomValue)
+import           Data.Text               (Text)
+import qualified Data.Text               as T
+import           Data.Translation        (KL (KLang), LocalizedText (Auto),
+                                          locText, locTextArray, translate,
+                                          whatLang)
+import           Discord                 (def)
+import           Discord.Types           (CreateEmbed (createEmbedAuthorIcon, createEmbedAuthorName, createEmbedFields),
+                                          CreateEmbedImage (CreateEmbedImageUrl),
+                                          EmbedField (EmbedField, embedFieldInline, embedFieldName, embedFieldValue),
+                                          User (userAvatar, userId, userName))
+import           Howdy.Comptime.Command  (Command, CommandInput (..))
+import           Howdy.Comptime.Reaction (Reaction, ReactionInput (..))
+import           Howdy.Internal.Discord  (MonadReply, embed, send)
 
-import Howdy.Command ( Command, CommandInput(..), CommandWith )
-import Howdy.Internal.Reaction
-import Data.Language
-import Control.Monad.Catch
-import Control.Monad.IO.Class
-import Howdy.Internal.Discord
-import Data.Text (Text)
-import Discord.Types
-import Data.Translation
-import qualified Data.Text as T
-import Control.Monad.Reader
-import GHC.Records
-import Data.Data
-import Data.Random
-import Discord
 
 transCmd :: Command
-transCmd = do
-    t <- ask
-    trans t.args English
+transCmd c = do
+    res <- trans c.args English
+    case res of
+        Left t  -> send t
+        Right t -> writeOut c.author t
 
--- transRec :: Reaction
--- transRec = do
---     m <- ask
---     trans m.args English
+transRec :: Reaction
+transRec r = do
+    res <- trans r.args English
+    case res of
+        Left t  -> send t
+        Right t -> writeOut r.author t
 
--- transRecRandom :: Reaction
--- transRecRandom = do
---     m <- ask
---     l <- liftIO $ randomValue @Lang $ dataTypeOf English
---     -- reply $ langName l
---     trans m.args l
+transRecRandom :: Reaction
+transRecRandom r = do
+    l <- liftIO $ randomValue @Lang $ dataTypeOf English
+    res <- trans r.args l
+    case res of
+        Left t  -> send t
+        Right t -> writeOut r.author t
 
-trans :: Text -> Lang -> Command
+trans :: (MonadIO m) => Text -> Lang -> m (Either Text [LocalizedText 'KLang])
 trans t l = do
     let tx = Auto t
-    tr <- translate tx l
-    a <- ask
+    tr <- liftIO $ translate tx l
 
     let trr = take 2 $ locTextArray tr
     if locText (last trr) == locText (head trr)
-    then send "nothing to translate.."
-    else writeOut a.user trr
+    then pure $ Left "nothing to translate.."
+    else pure $ Right trr
 
-writeOut :: User -> [LocalizedText 'KLang] -> Command
+writeOut :: MonadReply m => User -> [LocalizedText 'KLang] -> m ()
 writeOut a trr = embed $ let fr = EmbedField { embedFieldName = langName $ whatLang $ last trr
                                     , embedFieldValue = locText $ last trr
                                     , embedFieldInline = Just False
@@ -62,10 +69,10 @@ writeOut a trr = embed $ let fr = EmbedField { embedFieldName = langName $ whatL
 
                              pic = do
                                 av <- userAvatar a
-                                pure $ CreateEmbedImageUrl $
-                                    "https://cdn.discordapp.com/avatars/"
-                                    <> (T.pack . show $ userId a)
-                                    <> "/" <> av <> ".png"
+                                pure $ CreateEmbedImageUrl
+                                     $ "https://cdn.discordapp.com/avatars/"
+                                     <> (T.pack . show $ userId a)
+                                     <> "/" <> av <> ".png"
 
                          in def { createEmbedAuthorName = userName a
                                 , createEmbedFields     = [fr, to]

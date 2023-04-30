@@ -1,10 +1,10 @@
 cabal-version:      3.0
 name:               cowbot
-version:            0.1.0.0
+version:            4.1.0.0
 synopsis:           Discord bot
 
 -- A longer description of the package.
--- description:
+description:        Discord bot but longer
 homepage:           https://github.com/stereoknife/cowbot-hs
 
 -- A URL where users can report bugs.
@@ -21,6 +21,10 @@ extra-source-files:
     CHANGELOG.md
     README.md
 
+source-repository head
+    type: git
+    location: https://github.com/stereoknife/cowbot-hs.git
+
 executable cowbot
     main-is:          Main.hs
 
@@ -30,6 +34,7 @@ executable cowbot
         Commands.Bless
         Commands.Translate
         Commands.Youtube
+        --Commands.Units
         Data.Language
         Data.Translation
         Data.Random
@@ -39,23 +44,29 @@ executable cowbot
     -- other-extensions:
     build-depends:
           howdy
-        , base
+        , base          >= 4.16.0.0 && < 5
         , text
         , aeson
         --, http-client     ^>= 0.7.9
         --, http-client-tls ^>= 0.3.5.3
+        , http-client
+        , http-client-tls
         , http-conduit
         , http-types
         , exceptions
         , discord-haskell
         , html-entities
         , random
-        , process         ^>=1.6.13.2
+        , regex-tdfa      ^>= 1.3.2
+        , safe ^>= 0.3.19
+        , scientific
+        , process         ^>= 1.6.13.2
         , transformers
+        , parsec
 
         -- remove later
         , mtl
     hs-source-dirs:   app
     default-extensions: OverloadedStrings, OverloadedRecordDot
     default-language: Haskell2010
-    ghc-options: -O
+    ghc-options: -fllvm

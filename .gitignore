@@ -12,3 +12,7 @@ dist-newstyle/
 
 # Other files
 .DS_Store
+
+# Deployment
+launch
+launch-nightly
