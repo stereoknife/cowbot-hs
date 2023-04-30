@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM ghcr.io/stereoknife/haskell-aarch64:latest AS build
+FROM haskell:9.4 AS build
 
 ARG jobs=4
 
