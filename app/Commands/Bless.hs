@@ -33,7 +33,7 @@ bless :: Command
 bless i
     | i.author.userId.unId.unSnowflake == 182128752942120961 = do
         rand <- liftIO $ randomNum (0, 10)
-        if rand /= 0 then bless' i
+        if rand /= 1 then bless' i
         else send $ fmt str
     | otherwise = bless' i
     where str = APIResponse "Streets" "1" "12" st

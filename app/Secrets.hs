@@ -9,10 +9,10 @@ import qualified Data.Text.IO        as TIO
 import           System.Environment  (getEnv)
 
 discordToken :: IO T.Text
-discordToken = T.pack <$> getEnv "DIS_TOKEN" <|> TIO.readFile "./token.nightly.secret"
+discordToken = T.pack <$> getEnv "DISCORD_TOKEN" <|> TIO.readFile "./token.nightly.secret"
 
 youtubeKey :: IO T.Text
-youtubeKey = T.pack <$> getEnv "GOO_KEY" <|> TIO.readFile "./google.secret"
+youtubeKey = T.pack <$> getEnv "GOOGLE_KEY" <|> TIO.readFile "./google.secret"
 
 translateKey :: IO T.Text
-translateKey = T.pack <$> getEnv "GOO_KEY" <|> TIO.readFile "./google.secret"
+translateKey = T.pack <$> getEnv "GOOGLE_KEY" <|> TIO.readFile "./google.secret"
