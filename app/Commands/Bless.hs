@@ -48,6 +48,7 @@ bless' i = do
             $ setRequestMethod "GET"
             $ setRequestQueryString [ ("passage", Just $ encodeUtf8 "random")
                                     , ("type", Just $ encodeUtf8 "json")
+                                    , ("formatting", Just $ encodeUtf8 "plain")
                                     ]
             $ setRequestIgnoreStatus
             defReq
